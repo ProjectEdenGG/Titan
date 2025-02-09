@@ -26,7 +26,17 @@ public class TitanUpdater {
 
 		Titan.log("Checking for Modrinth update");
 
-		List<ModrinthVersion> modrinthVersions = Arrays.stream(getModrinthVersions())
+		final ModrinthVersion[] modrinthVersionsResponse;
+		try {
+			modrinthVersionsResponse = getModrinthVersions();
+		} catch (Exception ignore) {
+			return;
+		}
+
+		if (modrinthVersionsResponse == null)
+			return;
+
+		List<ModrinthVersion> modrinthVersions = Arrays.stream(modrinthVersionsResponse)
 				.filter(version -> Arrays.asList(version.getGame_versions()).contains(mcVersion))
 				.toList();
 
