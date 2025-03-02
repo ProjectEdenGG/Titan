@@ -4,14 +4,13 @@ import com.mojang.brigadier.Command;
 import com.mojang.brigadier.CommandDispatcher;
 import gg.projecteden.titan.Titan;
 import gg.projecteden.titan.saturn.Saturn;
-import net.fabricmc.fabric.api.client.command.v2.ClientCommandManager;
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.command.CommandRegistryAccess;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 
-import static net.fabricmc.fabric.api.client.command.v2.ClientCommandManager.*;
+import static net.fabricmc.fabric.api.client.command.v2.ClientCommandManager.literal;
 
 public class TitanCommand {
 
@@ -34,15 +33,18 @@ public class TitanCommand {
 	public static void init(CommandDispatcher<FabricClientCommandSource> dispatcher, CommandRegistryAccess commandRegistryAccess) {
 		dispatcher.register(literal("titanclient")
 				.then(literal("update").executes(context -> {
-						if (!Saturn.checkForUpdates())
-							MinecraftClient.getInstance().inGameHud.getChatHud().addMessage(TitanCommand.error);
-						else {
-							Saturn.queueProcess(() -> {
-								if (Saturn.update())
+						Saturn.checkForUpdatesAsync().thenAccept(update -> {
+							if (!update)
+								MinecraftClient.getInstance().inGameHud.getChatHud().addMessage(TitanCommand.error);
+							else {
+									Saturn.queueProcess(() -> {
+										if (Saturn.update())
+											MinecraftClient.getInstance().reloadResources();
+									});
 									MinecraftClient.getInstance().reloadResources();
-							});
-							MinecraftClient.getInstance().reloadResources();
-						}
+								}
+						});
+
 						return Command.SINGLE_SUCCESS;
 					}))
 					.executes(context -> {

@@ -7,6 +7,7 @@ import gg.projecteden.titan.config.annotations.Description;
 import gg.projecteden.titan.config.annotations.Disabled;
 import gg.projecteden.titan.config.annotations.Group;
 import gg.projecteden.titan.config.annotations.Name;
+import gg.projecteden.titan.saturn.Saturn;
 import me.shedaniel.clothconfig2.api.ConfigBuilder;
 import me.shedaniel.clothconfig2.api.ConfigCategory;
 import me.shedaniel.clothconfig2.api.ConfigEntryBuilder;
@@ -71,11 +72,16 @@ public class ModMenuImpl implements ModMenuApi {
 		}
 
 		if (Screen.hasControlDown()) {
-			builder.getOrCreateCategory(Text.literal("Developer")).addEntry(
+			builder.getOrCreateCategory(Text.literal("Developer"))
+				.addEntry(
 					entryBuilder.startBooleanToggle(Text.literal("Debug"), Titan.debug)
 							.setSaveConsumer(val -> Titan.debug = val)
+							.build())
+				.addEntry(
+					entryBuilder.startTextField(Text.literal("Saturn Branch"), Saturn.getUpdater().branch())
+							.setSaveConsumer(s -> Saturn.getUpdater().branch(s))
 							.build()
-			);
+				);
 		}
 
 		builder.setDoesConfirmSave(false);

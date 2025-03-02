@@ -11,6 +11,7 @@ import net.minecraft.resource.ResourcePackManager;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 public class Saturn {
 
@@ -63,6 +64,10 @@ public class Saturn {
 
 	public static boolean checkForUpdates() {
 		return updater.checkForUpdates();
+	}
+
+	public static CompletableFuture<Boolean> checkForUpdatesAsync() {
+		return updater.checkForUpdatesAsync();
 	}
 
 	public static void queueProcess(Runnable runnable) {

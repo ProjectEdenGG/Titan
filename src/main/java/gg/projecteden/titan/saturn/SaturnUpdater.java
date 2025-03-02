@@ -6,6 +6,7 @@ import gg.projecteden.titan.update.GitResponse;
 import joptsimple.internal.Strings;
 import lombok.SneakyThrows;
 import net.fabricmc.loader.api.FabricLoader;
+import net.minecraft.client.MinecraftClient;
 import org.apache.commons.io.FileUtils;
 import org.eclipse.jgit.api.CloneCommand;
 import org.eclipse.jgit.api.Git;
@@ -15,8 +16,10 @@ import org.eclipse.jgit.transport.RemoteConfig;
 import org.eclipse.jgit.transport.URIish;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 import static gg.projecteden.titan.saturn.Saturn.PATH;
 import static gg.projecteden.titan.utils.Utils.getGitResponse;
@@ -28,13 +31,21 @@ public enum SaturnUpdater {
 		boolean updateAvailable;
 
 		@Override
-		@SneakyThrows
 		public String version() {
 			try (Git git = git()) {
 				return git.getRepository().findRef("HEAD").getObjectId().getName().substring(0, 7);
 			} catch (Exception ex) {
 				ex.printStackTrace();
-				return "Unknown";
+				if (!ConfigItem.SATURN_HARD_RESET.getValue())
+					return "Unknown";
+				Titan.log("Attempting to reinstall...");
+				Titan.log(install());
+				try (Git git = git()) {
+					return git.getRepository().findRef("HEAD").getObjectId().getName().substring(0, 7);
+				} catch (Exception ex2) {
+					ex2.printStackTrace();
+					return "Unknown";
+				}
 			}
 		}
 
@@ -56,6 +67,8 @@ public enum SaturnUpdater {
 		@SneakyThrows
 		protected CloneCommand cloneCommand() {
 			return Git.cloneRepository()
+					.setBranchesToClone(List.of("refs/heads/titan"))
+					.setBranch("titan")
 					.setURI(REMOTE_URI)
 					.setDirectory(getResourcePackFolder().resolve("Saturn").toFile());
 		}
@@ -108,6 +121,46 @@ public enum SaturnUpdater {
 			}
 			return updateAvailable;
 		}
+
+		@Override
+		public CompletableFuture<Boolean> checkForUpdatesAsync() {
+			CompletableFuture<Boolean> future = new CompletableFuture<>();
+			if (updateAvailable)
+				return CompletableFuture.completedFuture(true);
+			else {
+				new Thread(() -> {
+					try (Git git  = git()) {
+						String commitVersion = getGitResponse("Saturn/commits/" + git.getRepository().getBranch(), GitResponse.Saturn.class).getSha();
+						String saturnVersion = Saturn.version();
+						future.complete((commitVersion != null && saturnVersion != null && !commitVersion.startsWith(saturnVersion)) || Strings.isNullOrEmpty(saturnVersion));
+					} catch (Exception ignore) { } // Rate limit on unauthenticated git api requests
+				}).start();
+			}
+			return future;
+		}
+
+		@Override
+		public void branch(String branch) {
+			Titan.log("Checking out to " + branch);
+			try (Git git = git()) {
+				git.fetch().call();
+				git.checkout().setCreateBranch(true).setForceRefUpdate(true).setName(branch).call();
+				MinecraftClient.getInstance().reloadResources();
+			} catch (Exception e) {
+                Titan.log(e.getMessage());
+            }
+        }
+
+		@Override
+		public String branch() {
+            try {
+				try (Git git = git()) {
+					return git.getRepository().getBranch();
+				}
+            } catch (IOException e) {
+                return "Unknown";
+            }
+        }
 	};
 
 	public abstract String version();
@@ -116,7 +169,13 @@ public enum SaturnUpdater {
 
 	public abstract String update();
 
+	public abstract void branch(String branch);
+
+	public abstract String branch();
+
 	public abstract boolean checkForUpdates();
+
+	public abstract CompletableFuture<Boolean> checkForUpdatesAsync();
 
 	public enum Mode {
 		START_UP,
