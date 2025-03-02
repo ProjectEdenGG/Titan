@@ -11,6 +11,7 @@ import org.apache.commons.io.FileUtils;
 import org.eclipse.jgit.api.CloneCommand;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.ResetCommand.ResetType;
+import org.eclipse.jgit.lib.BranchConfig;
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
 import org.eclipse.jgit.transport.RemoteConfig;
 import org.eclipse.jgit.transport.URIish;
@@ -83,8 +84,13 @@ public enum SaturnUpdater {
 		public String update() {
 			Titan.log("Updating Saturn via jgit");
 			try (Git git = git()) {
-				if (ConfigItem.SATURN_HARD_RESET.getValue())
-					git.reset().setMode(ResetType.HARD).setRef("origin/" + git.getRepository().getBranch()).call();
+				if (ConfigItem.SATURN_HARD_RESET.getValue()) {
+					BranchConfig branchConfig = new BranchConfig(git.getRepository().getConfig(), git.getRepository().getBranch());
+
+					String ref = branchConfig.getRemote() + "/" + branchConfig.getMerge().substring("refs/heads/".length());
+					Titan.log("Using ref " + ref);
+					git.reset().setMode(ResetType.HARD).setRef(ref).call();
+				}
 
 				updateAvailable = false;
 
