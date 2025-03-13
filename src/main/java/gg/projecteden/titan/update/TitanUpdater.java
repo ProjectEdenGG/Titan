@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import gg.projecteden.titan.Titan;
 import gg.projecteden.titan.utils.Utils;
 import net.minecraft.client.MinecraftClient;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -63,8 +64,16 @@ public class TitanUpdater {
 	}
 
 	private static ModrinthVersion[] getModrinthVersions() {
+		int timeout = 5000;
+		RequestConfig requestConfig = RequestConfig.custom()
+				.setConnectTimeout(timeout)
+				.setConnectionRequestTimeout(timeout)
+				.setSocketTimeout(timeout)
+				.build();
+
 		try (CloseableHttpClient client = HttpClientBuilder.create().build()) {
 			HttpGet request = new HttpGet("https://api.modrinth.com/v2/project/" + Titan.MODRINTH_SLUG +"/version");
+			request.setConfig(requestConfig);
 			request.addHeader("Accept", "application/json");
 			request.addHeader("Authorization", Titan.MODRINTH_TOKEN);
 			CloseableHttpResponse response = client.execute(request);

@@ -14,7 +14,11 @@ import gg.projecteden.titan.network.serverbound.TitanConfig;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.util.JsonHelper;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.Reader;
 import java.lang.reflect.Field;
 import java.nio.file.Path;
 
@@ -77,7 +81,7 @@ public class Config {
 	public static void save() {
 		JsonObject jsonObject = new JsonObject();
 
-		for (Field field : ConfigItem.getAll()) {
+		for (Field field : ConfigItem.getAllNonDeveloperOptions()) {
 			try {
 				if (field.isAnnotationPresent(Disabled.class))
 					continue;
@@ -115,7 +119,7 @@ public class Config {
 		JsonObject json = getJsonObject(CONFIG_FILE);
 		Titan.log(json.toString());
 
-		for (Field field : ConfigItem.getAll()) {
+		for (Field field : ConfigItem.getAllNonDeveloperOptions()) {
 			try {
 				if (field.isAnnotationPresent(Disabled.class))
 					continue;

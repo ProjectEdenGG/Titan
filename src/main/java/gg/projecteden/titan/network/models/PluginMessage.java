@@ -20,7 +20,8 @@ public enum PluginMessage {
     TITAN_CONFIG(TitanConfig.class),
     VERSIONS(Versions.class),
     UPDATE_STATE(UpdateState.class),
-    RESET_MINIGAME(ResetMinigame.class);
+    RESET_MINIGAME(ResetMinigame.class),
+    ;
 
     final @NonNull Class<? extends Message> clazz;
 

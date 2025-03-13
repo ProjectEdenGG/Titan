@@ -7,8 +7,9 @@ import java.lang.annotation.RetentionPolicy;
 public @interface Group {
     String value();
 
-    String Saturn = "Saturn";
-    String Utilities = "Utilities";
-    String Backpacks = "Backpacks";
+    String SATURN = "Saturn";
+    String UTILITIES = "Utilities";
+    String BACKPACKS = "Backpacks";
+    String DEVELOPER = "Developer";
 
 }

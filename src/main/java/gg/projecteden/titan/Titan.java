@@ -3,6 +3,7 @@ package gg.projecteden.titan;
 import gg.projecteden.titan.command.TitanCommand;
 import gg.projecteden.titan.config.Config;
 import gg.projecteden.titan.config.ConfigItem;
+import gg.projecteden.titan.creative.CustomCreativeTabs;
 import gg.projecteden.titan.discord.RichPresence;
 import gg.projecteden.titan.events.Events;
 import gg.projecteden.titan.network.ServerClientMessaging;
@@ -46,6 +47,10 @@ public class Titan implements ModInitializer {
 			MinecraftClient.getInstance().inGameHud.getChatHud().addMessage(Text.literal(PREFIX + message));
 	}
 
+	public static Identifier id(String name) {
+		return Identifier.of(MOD_ID, name);
+	}
+
 	@NotNull
 	public static ModContainer container() {
 		return FabricLoader.getInstance().getModContainer(Titan.class.getSimpleName().toLowerCase())
@@ -71,6 +76,8 @@ public class Titan implements ModInitializer {
 		ServerClientMessaging.init();
 
 		RichPresence.init();
+
+		CustomCreativeTabs.init();
 	}
 
 

@@ -3,13 +3,15 @@
   "minVersion": "0.8",
   "package": "gg.projecteden.titan.mixin",
   "compatibilityLevel": "JAVA_21",
-  "mixins": [
-  ],
+  "mixins": [],
   "client": [
     "ChatScreenMixin",
+    "CreativeInventoryScreenMixin",
     "EntityRendererMixin",
     "HandledScreenMixin",
+    "ItemGroupMixin",
     "ItemStackMixin",
+    "NoteBlockMixin",
     "OptionsScreenMixin",
     "SplashOverlayMixin",
     "TitleScreenMixin"

@@ -46,6 +46,9 @@ public class SplashOverlayMixin {
 					Titan.UPDATING_SATURN, x, y, 0, 0, imageWidth, imageHeight, imageWidth, imageHeight);
 		}
 
+		if (this.progress < 0.6F)
+			return;
+
 		for (Runnable runnable : Saturn.queuedProcesses)
 			runnable.run();
 		Saturn.queuedProcesses.clear();
