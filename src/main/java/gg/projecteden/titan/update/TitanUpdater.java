@@ -51,6 +51,9 @@ public class TitanUpdater {
 		if (modrinthVersion.getVersion_number().equals(Titan.version()))
 			return;
 
+		if (modrinthVersion.getDatePublished().before(buildDate))
+			return;
+
 		Titan.log("Found Modrinth update!");
 
 		updateStatus = UpdateStatus.AVAILABLE;

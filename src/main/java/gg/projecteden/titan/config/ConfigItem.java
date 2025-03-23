@@ -112,6 +112,13 @@ public class ConfigItem<T> {
     public static final ConfigItem<Boolean> STOP_ENTITY_CULLING = new ConfigItem<>(true);
 
     @Group(UTILITIES)
+    @Name("Stop Custom Block Flashing")
+    @Description("""
+                            Should Titan stop custom blocks from flashing
+                            when placing/breaking nearby blocks?""")
+    public static final ConfigItem<Boolean> STOP_CUSTOM_BLOCK_FLASHING = new ConfigItem<>(true);
+
+    @Group(UTILITIES)
     @Name("Discord Rich Presence")
     @Description("Should we update your Discord Status while on Project Eden")
     public static final ConfigItem<Boolean> DISCORD_RICH_PRESENCE = new ConfigItem<>(true) {
