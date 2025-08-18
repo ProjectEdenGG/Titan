@@ -10,6 +10,7 @@ import net.minecraft.component.DataComponentTypes;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtList;
+import net.minecraft.nbt.NbtOps;
 import net.minecraft.registry.DynamicRegistryManager;
 import net.minecraft.util.collection.DefaultedList;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -24,13 +25,17 @@ import java.net.JarURLConnection;
 import java.net.URL;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Scanner;
 import java.util.jar.Manifest;
 import java.util.stream.Collectors;
 
 public class Utils {
 
-	private static SimpleDateFormat ISOFormatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS");
+	private static final SimpleDateFormat ISOFormatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS");
 
 	@SneakyThrows
 	public static String bash(String command, File directory) {
@@ -107,17 +112,17 @@ public class Utils {
 		NbtCompound nbt = stack.get(DataComponentTypes.CUSTOM_DATA).copyNbt();
 
 		if (nbt != null && nbt.contains("ProjectEden")) {
-			NbtCompound projectEden = nbt.getCompound("ProjectEden");
+			NbtCompound projectEden = nbt.getCompound("ProjectEden").get();
 
 			if (projectEden.contains("Items")) {
 				DefaultedList<ItemStack> items = DefaultedList.of();
 				Map<Integer, NbtCompound> slotMap = new HashMap<>();
-				NbtList tagList = projectEden.getList("Items", 10);
+				NbtList tagList = projectEden.getList("Items").get();
 				final int count = tagList.size();
 
 				for (int i = 0; i < count; i++) {
-					int slot = tagList.getCompound(i).getByte("Slot");
-					slotMap.put(slot, tagList.getCompound(i));
+					int slot = tagList.getCompound(i).get().getByte("Slot").get();
+					slotMap.put(slot, tagList.getCompound(i).get());
 				}
 
 				int maxSlots = slotMap.keySet().stream().max(Integer::compareTo).orElse(0);
@@ -125,8 +130,15 @@ public class Utils {
 				for (int i = 0; i <= maxSlots; i++)
 					if (!slotMap.containsKey(i))
 						items.add(ItemStack.EMPTY);
-					else
-						ItemStack.fromNbt(registryManager, slotMap.get(i)).ifPresent(items::add);
+					else {
+                        try {
+                            ItemStack stack2 = ItemStack.CODEC.parse(registryManager.getOps(NbtOps.INSTANCE), slotMap.get(i)).getOrThrow();
+                            items.add(stack2);
+                        } catch (Throwable ex) {
+                            Titan.log("Failed to load item: " + slotMap.get(i).toString());
+                            ex.printStackTrace();
+                        }
+                    }
 
 				return items;
 			}

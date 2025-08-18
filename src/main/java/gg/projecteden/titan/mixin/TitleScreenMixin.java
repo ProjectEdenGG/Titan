@@ -5,6 +5,7 @@ import gg.projecteden.titan.update.TitanUpdater;
 import gg.projecteden.titan.update.UpdateStatus;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.gl.RenderPipelines;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.screen.TitleScreen;
 import net.minecraft.client.gui.screen.multiplayer.ConnectScreen;
@@ -13,7 +14,6 @@ import net.minecraft.client.gui.widget.TextIconButtonWidget;
 import net.minecraft.client.network.ServerAddress;
 import net.minecraft.client.network.ServerInfo;
 import net.minecraft.client.option.ServerList;
-import net.minecraft.client.render.RenderLayer;
 import net.minecraft.text.Text;
 import net.minecraft.util.Util;
 import org.spongepowered.asm.mixin.Mixin;
@@ -83,7 +83,7 @@ public class TitleScreenMixin extends Screen {
 		if (TitanUpdater.updateStatus != UpdateStatus.NONE || Titan.debug) {
 			int finalY = y;
 			this.addDrawable((context, mouseX, mouseY, delta) -> {
-				context.drawGuiTexture(RenderLayer::getGuiTextured, UPDATE_AVAILABLE, this.width / 2 + 120, finalY, 5, 20);
+				context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, UPDATE_AVAILABLE, this.width / 2 + 120, finalY, 5, 20);
 			});
 		}
 	}

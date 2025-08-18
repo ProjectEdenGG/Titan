@@ -3,6 +3,7 @@ package gg.projecteden.titan.mixin;
 import gg.projecteden.titan.Titan;
 import gg.projecteden.titan.saturn.Saturn;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.gl.RenderPipelines;
 import net.minecraft.client.gui.Drawable;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.screen.pack.PackListWidget;
@@ -11,7 +12,6 @@ import net.minecraft.client.gui.tooltip.Tooltip;
 import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.client.gui.widget.TextIconButtonWidget;
 import net.minecraft.client.gui.widget.ThreePartsLayoutWidget;
-import net.minecraft.client.render.RenderLayer;
 import net.minecraft.text.Text;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
@@ -90,7 +90,7 @@ public class OptionsScreenMixin extends Screen {
 	@Unique
 	private void renderUpdateIcon() {
 		updateIcon = this.addDrawable((context, mouseX, mouseY, delta) -> {
-			context.drawGuiTexture(RenderLayer::getGuiTextured, UPDATE_AVAILABLE, this.width - 8, 0, 5, 20);
+			context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, UPDATE_AVAILABLE, this.width - 8, 0, 5, 20);
 		});
 	}
 

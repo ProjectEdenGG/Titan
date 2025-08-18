@@ -1,33 +1,34 @@
 package gg.projecteden.titan.utils;
 
-import com.mojang.blaze3d.platform.GlStateManager;
-import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.opengl.GlStateManager;
+import com.mojang.blaze3d.textures.GpuTextureView;
 import gg.projecteden.titan.Titan;
+import gg.projecteden.titan.mixin.DrawContextMixin;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gl.ShaderProgramKeys;
+import net.minecraft.client.gl.RenderPipelines;
 import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.render.*;
-import net.minecraft.client.util.math.MatrixStack;
+import net.minecraft.client.gui.ScreenRect;
+import net.minecraft.client.gui.render.state.SimpleGuiElementRenderState;
+import net.minecraft.client.texture.ResourceTexture;
+import net.minecraft.client.texture.TextureSetup;
 import net.minecraft.inventory.Inventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.Identifier;
+import org.joml.Matrix3x2f;
+import org.joml.Matrix3x2fStack;
 
+// https://github.com/sakura-ryoko/malilib/blob/1.21.8/src/main/java/fi/dy/masa/malilib/render/InventoryOverlay.java
 public class InventoryOverlay {
     public static final Identifier TEXTURE_54 = Identifier.ofVanilla("textures/gui/container/generic_54.png");
 
     public static final InventoryProperties INV_PROPS_TEMP = new InventoryProperties();
 
 
-    public static void renderInventoryBackground(InventoryRenderType type, int x, int y) {
-        RenderSystem.enableBlend();
-        RenderSystem.blendFuncSeparate(GlStateManager.SrcFactor.SRC_ALPHA, GlStateManager.DstFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SrcFactor.ONE, GlStateManager.DstFactor.ZERO);
-
-        RenderSystem.setShader(ShaderProgramKeys.POSITION_TEX);
-
-        Tessellator tessellator = Tessellator.getInstance();
-        BufferBuilder buffer = tessellator.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_TEXTURE);
+    public static void renderInventoryBackground(DrawContext context, InventoryRenderType type, int x, int y, int color, MinecraftClient mc) {
+        GlStateManager._enableBlend();
+        GlStateManager._blendFuncSeparate(770, 771, 1, 0);
 
         int rows = switch (type) {
             case FIXED_27 -> 0;
@@ -39,35 +40,42 @@ public class InventoryOverlay {
         int h1 = 61 + (rows * 18);
         int h2 = 54 + (rows * 18);
 
-        renderInventoryBackground(x, y, h1, h2, buffer);
-
-        RenderSystem.enableDepthTest();
-        RenderSystem.enableBlend();
-
-        BufferRenderer.drawWithGlobalProgram(buffer.end());
+        renderInventoryBackground(context, x, y, h1, h2, color, mc);
     }
 
-    public static void drawTexturedRectBatched(int x, int y, int u, int v, int width, int height, BufferBuilder buffer) {
-        drawTexturedRectBatched(x, y, u, v, width, height, 0, buffer);
+    public static void renderInventoryBackground(DrawContext context, int x, int y, int h1, int h2, int color, MinecraftClient mc) {
+        ResourceTexture tex = (ResourceTexture) mc.getTextureManager().getTexture(TEXTURE_54);
+        if (tex == null)
+            return;
+        GpuTextureView gpuTextureView = tex.getGlTextureView();
+        if (gpuTextureView == null) return;
+
+        drawTexturedRectBatched(context, gpuTextureView, x      , y     ,   0,   0,   7,  h1, color); // left (top)
+        drawTexturedRectBatched(context, gpuTextureView, x +   7, y     ,   7,   0, 169,   7, color); // top (right)
+        drawTexturedRectBatched(context, gpuTextureView, x + 169, y +  7, 169, 107,   7,  h1 - 1, color); // right (bottom)
+        drawTexturedRectBatched(context, gpuTextureView, x      , y + h1,   0, 215, 180,   7, color); // bottom (left)
+        drawTexturedRectBatched(context, gpuTextureView, x +   7, y +  7,   7,  17, 162,  h2, color); // middle
     }
 
-    public static void drawTexturedRectBatched(int x, int y, int u, int v, int width, int height, float zLevel, BufferBuilder buffer) {
-        float pixelWidth = 0.00390625F;
-
-        buffer.vertex(x        , y + height, zLevel).texture( u          * pixelWidth, (v + height) * pixelWidth);
-        buffer.vertex(x + width, y + height, zLevel).texture((u + width) * pixelWidth, (v + height) * pixelWidth);
-        buffer.vertex(x + width, y         , zLevel).texture((u + width) * pixelWidth,  v           * pixelWidth);
-        buffer.vertex(x        , y         , zLevel).texture( u          * pixelWidth,  v           * pixelWidth);
+    public static void drawTexturedRectBatched(DrawContext drawContext, GpuTextureView gpuTextureView, int x, int y, int u, int v, int width, int height, int argb)
+    {
+        addSimpleElement(drawContext,
+                new TexturedRectGUIElement(
+                        RenderPipelines.GUI_TEXTURED,
+                        TextureSetup.withoutGlTexture(gpuTextureView),
+                        new Matrix3x2f(drawContext.getMatrices()),
+                        x, y, u, v,
+                        width, height, argb,
+                        peekLastScissor(drawContext))
+        );
     }
 
-    public static void renderInventoryBackground(int x, int y, int h1, int h2, BufferBuilder buffer) {
-        RenderSystem.setShaderTexture(0, TEXTURE_54);
+    public static void addSimpleElement(DrawContext drawContext, SimpleGuiElementRenderState simpleElement) {
+        ((DrawContextMixin) drawContext).getRenderState().addSimpleElement(simpleElement);
+    }
 
-        drawTexturedRectBatched(x      , y     ,   0,   0,   7,  h1, buffer); // left (top)
-        drawTexturedRectBatched(x +   7, y     ,   7,   0, 169,   7, buffer); // top (right)
-        drawTexturedRectBatched(x + 169, y +  7, 169, 107,   7,  h1 - 1, buffer); // right (bottom)
-        drawTexturedRectBatched(x      , y + h1,   0, 215, 180,   7, buffer); // bottom (left)
-        drawTexturedRectBatched(x +   7, y +  7,   7,  17, 162,  h2, buffer); // middle
+    public static ScreenRect peekLastScissor(DrawContext drawContext) {
+        return ((DrawContextMixin) drawContext).getScissorStack().peekLast();
     }
 
     /**
@@ -106,7 +114,7 @@ public class InventoryOverlay {
             ItemStack stack = inv.getStack(slot).copy();
 
             if (!stack.isEmpty())
-                renderStackAt(stack, x, y, 1, mc, drawContext);
+                renderStackAt(drawContext, stack, x, y, 1, mc);
 
             x += 18;
             slot++;
@@ -119,41 +127,18 @@ public class InventoryOverlay {
             else
                 Titan.debug("Rendering on next column");
         }
-
-//        for (int slot = startSlot, i = 0; slot < slots && i < maxSlots;) {
-//            for (int column = 0; column < slotsPerRow && slot < slots && i < maxSlots; ++column, ++slot, ++i) {
-//                ItemStack stack = inv.getStack(slot);
-//
-//                if (!stack.isEmpty()) {
-//                    renderStackAt(stack, x, y, 1, mc, drawContext);
-//                }
-//
-//                x += 18;
-//            }
-//
-//            x = startX;
-//            y += 18;
-//        }
     }
 
-    public static void renderStackAt(ItemStack stack, float x, float y, float scale, MinecraftClient mc, DrawContext drawContext) {
-        MatrixStack matrixStack = drawContext.getMatrices();
-        matrixStack.push();
-        matrixStack.translate(x, y, 0.f);
-        matrixStack.scale(scale, scale, 1);
-
-        DiffuseLighting.enableGuiDepthLighting();
-        RenderSystem.setShaderColor(1f, 1f, 1f, 1f);
+    public static void renderStackAt(DrawContext drawContext, ItemStack stack, float x, float y, float scale, MinecraftClient mc) {
+        Matrix3x2fStack matrixStack = drawContext.getMatrices();
+        matrixStack.pushMatrix();
+        matrixStack.translate(x, y);
+        matrixStack.scale(scale, scale);
 
         drawContext.drawItem(stack.copy(), 0, 0);
+        drawContext.drawStackOverlay(mc.textRenderer, stack.copy(), 0, 0);
 
-        RenderSystem.setShaderColor(1f, 1f, 1f, 1f);
-        Titan.debug("Stack count: " + stack.getCount());
-        drawContext.drawStackOverlay(mc.textRenderer, stack.copyWithCount(stack.getCount()), 0, 0);
-        drawContext.draw();
-
-        RenderSystem.setShaderColor(1f, 1f, 1f, 1f);
-        matrixStack.pop();
+        matrixStack.popMatrix();
     }
 
     public static class InventoryProperties {

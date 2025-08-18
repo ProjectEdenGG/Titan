@@ -7,7 +7,6 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.screen.ingame.HandledScreen;
-import net.minecraft.client.render.DiffuseLighting;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.NbtComponent;
 import net.minecraft.inventory.Inventory;
@@ -74,23 +73,17 @@ public class HandledScreenMixin {
             ci.cancel();
         }
 
-        if (ConfigItem.USE_BACKGROUND_COLORS.getValue() && stack.getComponents().contains(DataComponentTypes.DYED_COLOR)) {
-            Color color = new Color(stack.get(DataComponentTypes.DYED_COLOR).rgb());
-            RenderSystem.setShaderColor(color.getRed() / 255f, color.getGreen() / 255f, color.getBlue() / 255f, 1f);
-        }
-        else {
-            RenderSystem.setShaderColor(1f, 1f, 1f, 1f);
-        }
-
-        DiffuseLighting.disableGuiDepthLighting();
+        Color color;
+        if (ConfigItem.USE_BACKGROUND_COLORS.getValue() && stack.getComponents().contains(DataComponentTypes.DYED_COLOR))
+            color = new Color(stack.get(DataComponentTypes.DYED_COLOR).rgb());
+        else
+            color = Color.WHITE;
 
         Matrix4fStack matrixStack = RenderSystem.getModelViewStack();
         matrixStack.pushMatrix();
         matrixStack.translate(0, 0, 500);
 
-        InventoryOverlay.renderInventoryBackground(type, x, y);
-
-        DiffuseLighting.enableGuiDepthLighting();
+        InventoryOverlay.renderInventoryBackground(drawContext, type, x, y, color.getRGB(), MinecraftClient.getInstance());
 
         Inventory inv = getAsInventory(items);
         InventoryOverlay.renderInventoryStacks(type, inv, x + props.slotOffsetX, y + props.slotOffsetY, props.slotsPerRow, 0, type.getMaxSlots(), MinecraftClient.getInstance(), drawContext);

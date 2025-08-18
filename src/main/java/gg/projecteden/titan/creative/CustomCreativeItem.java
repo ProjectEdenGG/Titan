@@ -14,7 +14,6 @@ import net.minecraft.component.type.NbtComponent;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtElement;
 import net.minecraft.nbt.NbtList;
 import net.minecraft.nbt.StringNbtReader;
 import net.minecraft.registry.Registries;
@@ -36,17 +35,17 @@ public class CustomCreativeItem {
         if (nbt == null)
             return null;
 
-        if (!nbt.contains("id", NbtElement.STRING_TYPE))
+        if (!nbt.contains("id"))
             return null;
 
-        Item item = Registries.ITEM.get(Identifier.of(nbt.getString("id")));
+        Item item = Registries.ITEM.get(Identifier.of(nbt.getString("id").get()));
         ItemStack itemStack = new ItemStack(item);
 
-        if (nbt.contains("count", NbtElement.INT_TYPE))
-            itemStack.setCount(nbt.getInt("count"));
+        if (nbt.contains("count"))
+            itemStack.setCount(nbt.getInt("count").get());
 
-        if (nbt.contains("components", NbtElement.COMPOUND_TYPE)) {
-            NbtCompound components = nbt.getCompound("components");
+        if (nbt.contains("components")) {
+            NbtCompound components = nbt.getCompound("components").get();
             parseComponents(components, itemStack);
         }
 
@@ -55,7 +54,7 @@ public class CustomCreativeItem {
 
     private NbtCompound getNbt() {
         try {
-            return StringNbtReader.parse(item);
+            return StringNbtReader.readCompound(item);
         } catch (CommandSyntaxException e) {
             return null;
         }
@@ -69,35 +68,31 @@ public class CustomCreativeItem {
      * dyed_color
      */
     private void parseComponents(NbtCompound components, ItemStack itemStack) {
-        if (components.contains("minecraft:custom_data", NbtElement.COMPOUND_TYPE)) {
-            NbtCompound customData = components.getCompound("minecraft:custom_data");
+        if (components.contains("minecraft:custom_data")) {
+            NbtCompound customData = components.getCompound("minecraft:custom_data").get();
             itemStack.set(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(customData));
         }
 
-        if (components.contains("minecraft:custom_name", NbtElement.STRING_TYPE)) {
-            String customName = components.getString("minecraft:custom_name");
+        if (components.contains("minecraft:custom_name")) {
+            String customName = components.getString("minecraft:custom_name").get();
             itemStack.set(DataComponentTypes.CUSTOM_NAME, parseText(customName));
         }
 
-        if (components.contains("minecraft:lore", NbtElement.LIST_TYPE)) {
-            NbtList lore = components.getList("minecraft:lore", NbtElement.STRING_TYPE);
-            itemStack.set(DataComponentTypes.LORE, new LoreComponent(lore.stream().map(line -> parseText(line.asString())).toList()));
+        if (components.contains("minecraft:lore")) {
+            NbtList lore = components.getList("minecraft:lore").get();
+            itemStack.set(DataComponentTypes.LORE, new LoreComponent(lore.stream().map(line -> parseText(line.asString().get())).toList()));
         }
 
-        if (components.contains("minecraft:item_model", NbtElement.STRING_TYPE)) {
-            String itemModel = components.getString("minecraft:item_model");
+        if (components.contains("minecraft:item_model")) {
+            String itemModel = components.getString("minecraft:item_model").get();
             itemStack.set(DataComponentTypes.ITEM_MODEL, Identifier.of(itemModel));
         }
 
-        if (components.contains("minecraft:dyed_color", NbtElement.COMPOUND_TYPE)) {
-            NbtCompound dyedColor = components.getCompound("minecraft:dyed_color");
-            int color = dyedColor.getInt("rgb");
-            boolean showInTooltip = true;
-            if (dyedColor.contains("show_in_tooltip", NbtElement.BYTE_TYPE)) {
-                if (dyedColor.getByte("show_in_tooltip") == 0)
-                    showInTooltip = false;
-            }
-            itemStack.set(DataComponentTypes.DYED_COLOR, new DyedColorComponent(color, showInTooltip));
+        if (components.contains("minecraft:dyed_color")) {
+            NbtCompound dyedColor = components.getCompound("minecraft:dyed_color").get();
+            int color = dyedColor.getInt("rgb").get();
+
+            itemStack.set(DataComponentTypes.DYED_COLOR, new DyedColorComponent(color));
         }
     }
 

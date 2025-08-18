@@ -10,7 +10,7 @@ import net.minecraft.util.Formatting;
 
 public class SaturnUpdate extends Clientbound {
 
-    static final ClickEvent clickEvent = new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/titanclient update");
+    static final ClickEvent clickEvent = new ClickEvent.RunCommand("/titanclient update");
 
     static final Text text = Text.literal("")
             .append(Text.literal("[").formatted(Formatting.DARK_GRAY, Formatting.BOLD))
