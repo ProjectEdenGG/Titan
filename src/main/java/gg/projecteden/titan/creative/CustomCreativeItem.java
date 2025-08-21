@@ -14,6 +14,7 @@ import net.minecraft.component.type.NbtComponent;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.nbt.NbtElement;
 import net.minecraft.nbt.NbtList;
 import net.minecraft.nbt.StringNbtReader;
 import net.minecraft.registry.Registries;
@@ -74,13 +75,13 @@ public class CustomCreativeItem {
         }
 
         if (components.contains("minecraft:custom_name")) {
-            String customName = components.getString("minecraft:custom_name").get();
+            NbtCompound customName = components.getCompound("minecraft:custom_name").get();
             itemStack.set(DataComponentTypes.CUSTOM_NAME, parseText(customName));
         }
 
         if (components.contains("minecraft:lore")) {
             NbtList lore = components.getList("minecraft:lore").get();
-            itemStack.set(DataComponentTypes.LORE, new LoreComponent(lore.stream().map(line -> parseText(line.asString().get())).toList()));
+            itemStack.set(DataComponentTypes.LORE, new LoreComponent(lore.stream().map(line -> parseText(line)).toList()));
         }
 
         if (components.contains("minecraft:item_model")) {
@@ -89,11 +90,13 @@ public class CustomCreativeItem {
         }
 
         if (components.contains("minecraft:dyed_color")) {
-            NbtCompound dyedColor = components.getCompound("minecraft:dyed_color").get();
-            int color = dyedColor.getInt("rgb").get();
-
-            itemStack.set(DataComponentTypes.DYED_COLOR, new DyedColorComponent(color));
+            int dyedColor = components.getInt("minecraft:dyed_color").get();
+            itemStack.set(DataComponentTypes.DYED_COLOR, new DyedColorComponent(dyedColor));
         }
+    }
+
+    public static Text parseText(NbtElement tag) {
+        return parseText(tag.toString());
     }
 
     public static Text parseText(String jsonString) {
