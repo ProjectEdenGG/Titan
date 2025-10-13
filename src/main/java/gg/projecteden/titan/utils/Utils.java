@@ -50,10 +50,10 @@ public class Utils {
 		if (handler == null)
 			return false;
 
-		final String address = handler.getConnection().getAddress().toString();
+		String address = handler.getConnection().getAddress().toString();
 		if (address == null)
 			return false;
-        address = address.toLowercase();
+        address = address.toLowerCase();
 
 		return address.contains("projecteden.gg") || address.contains("148.113.216.194");
 	}
