@@ -53,8 +53,9 @@ public class Utils {
 		final String address = handler.getConnection().getAddress().toString();
 		if (address == null)
 			return false;
+        address = address.toLowercase();
 
-		return address.contains("projecteden.gg") || address.contains("51.222.11.194");
+		return address.contains("projecteden.gg") || address.contains("148.113.216.194");
 	}
 
 	public static String camelCase(String text) {
