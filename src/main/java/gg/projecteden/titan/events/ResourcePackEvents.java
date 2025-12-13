@@ -11,11 +11,11 @@ import gg.projecteden.titan.update.TitanUpdater;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.fabric.api.resource.v1.ResourceLoader;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.resource.ResourceReloader;
-import net.minecraft.resource.ResourceType;
-import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
+import net.minecraft.ChatFormatting;
+import net.minecraft.client.Minecraft;
+import net.minecraft.network.chat.Component;
+import net.minecraft.server.packs.PackType;
+import net.minecraft.server.packs.resources.PreparableReloadListener;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
@@ -25,18 +25,18 @@ import static gg.projecteden.titan.utils.Utils.isOnEden;
 
 public class ResourcePackEvents {
 
-	static final Text text = Text.literal("")
-			.append(Text.literal("[").formatted(Formatting.DARK_GRAY, Formatting.BOLD))
-			.formatted(Formatting.RESET)
-			.append(Text.literal("Titan").formatted(Formatting.YELLOW))
-			.append(Text.literal("]").formatted(Formatting.DARK_GRAY, Formatting.BOLD))
-			.formatted(Formatting.RESET)
-			.append(Text.literal(" Saturn was updated during your last textures reload!").formatted(Formatting.DARK_AQUA));
+	static final Component text = Component.literal("")
+			.append(Component.literal("[").withStyle(ChatFormatting.DARK_GRAY, ChatFormatting.BOLD))
+			.withStyle(ChatFormatting.RESET)
+			.append(Component.literal("Titan").withStyle(ChatFormatting.YELLOW))
+			.append(Component.literal("]").withStyle(ChatFormatting.DARK_GRAY, ChatFormatting.BOLD))
+			.withStyle(ChatFormatting.RESET)
+			.append(Component.literal(" Saturn was updated during your last textures reload!").withStyle(ChatFormatting.DARK_AQUA));
 
 	public static void register() {
 		ClientPlayConnectionEvents.JOIN.register(((handler, sender, client) -> {
 			if (isOnEden()) {
-				Saturn.env = handler.getConnection().getAddress().toString().contains("25565") ? SaturnUpdater.Env.PROD : SaturnUpdater.Env.TEST;
+				Saturn.env = handler.getConnection().getRemoteAddress().toString().contains("25565") ? SaturnUpdater.Env.PROD : SaturnUpdater.Env.TEST;
 				if (SATURN_MANAGE_STATUS.getValue())
 					Saturn.enable();
 				ServerClientMessaging.send(new Handshake());
@@ -56,12 +56,12 @@ public class ResourcePackEvents {
 				Saturn.enable();
 		});
 
-		ResourceLoader.get(ResourceType.CLIENT_RESOURCES).registerReloader(Titan.id("reload_listener"), new ResourceReloader() {
+		ResourceLoader.get(PackType.CLIENT_RESOURCES).registerReloader(Titan.id("reload_listener"), new PreparableReloadListener() {
 
 			long lastForcedReload = 0L;
 
 			@Override
-			public CompletableFuture<Void> reload(Store store, Executor prepareExecutor, Synchronizer reloadSynchronizer, Executor applyExecutor) {
+			public CompletableFuture<Void> reload(SharedState store, Executor prepareExecutor, PreparationBarrier reloadSynchronizer, Executor applyExecutor) {
 				if (isOnEden() && (Saturn.getUpdater() == SaturnUpdater.GIT || SATURN_UPDATE_INSTANCES.getValue() != SaturnUpdater.Mode.START_UP)) {
 					Saturn.queueProcess(() -> {
 						if (Saturn.update()) {
@@ -69,8 +69,8 @@ public class ResourcePackEvents {
 							if (thisReload - lastForcedReload < 30000)
 								return;
 							lastForcedReload = thisReload;
-							MinecraftClient.getInstance().reloadResources();
-							MinecraftClient.getInstance().inGameHud.getChatHud().addMessage(text);
+							Minecraft.getInstance().reloadResourcePacks();
+							Minecraft.getInstance().gui.getChat().addMessage(text);
 						}
 
 						ServerClientMessaging.send(new Versions());

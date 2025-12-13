@@ -2,11 +2,11 @@ package gg.projecteden.titan.mixin;
 
 import gg.projecteden.titan.config.ConfigItem;
 import gg.projecteden.titan.discord.PlayerStates;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.screen.ChatScreen;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.gui.widget.TextFieldWidget;
-import net.minecraft.text.Text;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.components.EditBox;
+import net.minecraft.client.gui.screens.ChatScreen;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.network.chat.Component;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
@@ -22,14 +22,14 @@ import static gg.projecteden.titan.utils.Utils.isOnEden;
 @Mixin(ChatScreen.class)
 public class ChatScreenMixin extends Screen {
 
-    @Shadow protected TextFieldWidget chatField;
+    @Shadow protected EditBox input;
 
-    protected ChatScreenMixin(Text title) {
+    protected ChatScreenMixin(Component title) {
         super(title);
     }
 
     @Inject(method = "render", at = @At(value = "HEAD"))
-    public void render(DrawContext context, int mouseX, int mouseY, float delta, CallbackInfo ci) {
+    public void render(GuiGraphics context, int mouseX, int mouseY, float delta, CallbackInfo ci) {
         if (!isOnEden())
             return;
         if (!ConfigItem.CHAT_CHANNEL_RENDER.getValue())
@@ -52,7 +52,7 @@ public class ChatScreenMixin extends Screen {
 
     @Unique
     private PlayerStates.ChatChannel detectQuickMessage() {
-        String chat = this.chatField.getText().trim();
+        String chat = this.input.getValue().trim();
 
         if (chat.isBlank())
             return null;

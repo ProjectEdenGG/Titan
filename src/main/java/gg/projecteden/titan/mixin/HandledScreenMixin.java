@@ -4,18 +4,18 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import gg.projecteden.titan.config.ConfigItem;
 import gg.projecteden.titan.utils.InventoryOverlay;
 import gg.projecteden.titan.utils.Utils;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.screen.ingame.HandledScreen;
-import net.minecraft.component.DataComponentTypes;
-import net.minecraft.component.type.NbtComponent;
-import net.minecraft.inventory.Inventory;
-import net.minecraft.inventory.SimpleInventory;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.screen.slot.Slot;
-import net.minecraft.util.collection.DefaultedList;
-import net.minecraft.util.math.MathHelper;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.core.NonNullList;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.util.Mth;
+import net.minecraft.world.Container;
+import net.minecraft.world.SimpleContainer;
+import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.CustomData;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4fStack;
 import org.spongepowered.asm.mixin.Mixin;
@@ -30,26 +30,26 @@ import java.util.List;
 
 import static gg.projecteden.titan.utils.Utils.getStoredItems;
 
-@Mixin(HandledScreen.class)
+@Mixin(AbstractContainerScreen.class)
 public class HandledScreenMixin {
-    @Shadow @Nullable protected Slot focusedSlot;
+    @Shadow @Nullable protected Slot hoveredSlot;
 
-    @Inject(method = "drawMouseoverTooltip", at = @At(value = "INVOKE", shift = At.Shift.BEFORE,
-            target = "Lnet/minecraft/client/gui/DrawContext;drawTooltip(Lnet/minecraft/client/font/TextRenderer;Ljava/util/List;Ljava/util/Optional;IILnet/minecraft/util/Identifier;)V"), cancellable = true)
-    private void onRenderTooltip(DrawContext drawContext, int x, int y, CallbackInfo ci) {
+    @Inject(method = "renderTooltip", at = @At(value = "INVOKE", shift = At.Shift.BEFORE,
+            target = "Lnet/minecraft/client/gui/GuiGraphics;setTooltipForNextFrame(Lnet/minecraft/client/gui/Font;Ljava/util/List;Ljava/util/Optional;IILnet/minecraft/resources/Identifier;)V"), cancellable = true)
+    private void onRenderTooltip(GuiGraphics drawContext, int x, int y, CallbackInfo ci) {
         if (!ConfigItem.DO_BACKPACK_PREVIEWS.getValue())
             return;
 
         if (ConfigItem.PREVIEWS_REQUIRE_SHIFT.getValue() && !Utils.isShiftPressed())
             return;
 
-        if (this.focusedSlot != null && this.focusedSlot.hasStack())
-            onRenderTooltipLast(drawContext, this.focusedSlot.getStack(), x, y, ci);
+        if (this.hoveredSlot != null && this.hoveredSlot.hasItem())
+            onRenderTooltipLast(drawContext, this.hoveredSlot.getItem(), x, y, ci);
     }
 
     @Unique
-    private void onRenderTooltipLast(DrawContext context, ItemStack stack, int x, int y, CallbackInfo ci) {
-        if (getStoredItems(MinecraftClient.getInstance().player.getEntityWorld().getRegistryManager(), stack).isEmpty()) {
+    private void onRenderTooltipLast(GuiGraphics context, ItemStack stack, int x, int y, CallbackInfo ci) {
+        if (getStoredItems(Minecraft.getInstance().player.level().registryAccess(), stack).isEmpty()) {
             return;
         }
 
@@ -57,25 +57,25 @@ public class HandledScreenMixin {
     }
 
     @Unique
-    public void renderItemContentsPreview(ItemStack stack, int baseX, int baseY, DrawContext drawContext, CallbackInfo ci) {
-        DefaultedList<ItemStack> items = getStoredItems(MinecraftClient.getInstance().player.getEntityWorld().getRegistryManager(), stack);
+    public void renderItemContentsPreview(ItemStack stack, int baseX, int baseY, GuiGraphics drawContext, CallbackInfo ci) {
+        NonNullList<ItemStack> items = getStoredItems(Minecraft.getInstance().player.level().registryAccess(), stack);
 
         InventoryOverlay.InventoryRenderType type = getType(stack);
         InventoryOverlay.InventoryProperties props = InventoryOverlay.getInventoryPropsTemp(type);
 
-        int screenWidth = MinecraftClient.getInstance().getWindow().getScaledWidth();
-        int screenHeight = MinecraftClient.getInstance().getWindow().getScaledHeight();
+        int screenWidth = Minecraft.getInstance().getWindow().getGuiScaledWidth();
+        int screenHeight = Minecraft.getInstance().getWindow().getGuiScaledHeight();
         int height = props.height + 18;
-        int x = MathHelper.clamp(baseX + 8     , 0, screenWidth - props.width);
-        int y = MathHelper.clamp(baseY - height, 0, screenHeight - height);
+        int x = Mth.clamp(baseX + 8     , 0, screenWidth - props.width);
+        int y = Mth.clamp(baseY - height, 0, screenHeight - height);
 
         if (baseY - height != y) { // it has been clamped to not go off the screen - cancel rendering the actual tooltip because it renders on top
             ci.cancel();
         }
 
         Color color;
-        if (ConfigItem.USE_BACKGROUND_COLORS.getValue() && stack.getComponents().contains(DataComponentTypes.DYED_COLOR))
-            color = new Color(stack.get(DataComponentTypes.DYED_COLOR).rgb());
+        if (ConfigItem.USE_BACKGROUND_COLORS.getValue() && stack.getComponents().has(DataComponents.DYED_COLOR))
+            color = new Color(stack.get(DataComponents.DYED_COLOR).rgb());
         else
             color = Color.WHITE;
 
@@ -83,20 +83,20 @@ public class HandledScreenMixin {
         matrixStack.pushMatrix();
         matrixStack.translate(0, 0, 500);
 
-        InventoryOverlay.renderInventoryBackground(drawContext, type, x, y, color.getRGB(), MinecraftClient.getInstance());
+        InventoryOverlay.renderInventoryBackground(drawContext, type, x, y, color.getRGB(), Minecraft.getInstance());
 
-        Inventory inv = getAsInventory(items);
-        InventoryOverlay.renderInventoryStacks(type, inv, x + props.slotOffsetX, y + props.slotOffsetY, props.slotsPerRow, 0, type.getMaxSlots(), MinecraftClient.getInstance(), drawContext);
+        Container inv = getAsInventory(items);
+        InventoryOverlay.renderInventoryStacks(type, inv, x + props.slotOffsetX, y + props.slotOffsetY, props.slotsPerRow, 0, type.getMaxSlots(), Minecraft.getInstance(), drawContext);
 
         matrixStack.popMatrix();
     }
 
     @Unique
     private InventoryOverlay.InventoryRenderType getType(ItemStack stack) {
-        NbtComponent component = stack.get(DataComponentTypes.CUSTOM_DATA);
+        CustomData component = stack.get(DataComponents.CUSTOM_DATA);
         if (component == null) return null;
 
-        NbtCompound nbt = component.copyNbt();
+        CompoundTag nbt = component.copyTag();
         if (nbt == null)
             return InventoryOverlay.InventoryRenderType.FIXED_27;
 
@@ -110,11 +110,11 @@ public class HandledScreenMixin {
     }
 
     @Unique
-    private Inventory getAsInventory(List<ItemStack> items) {
-        SimpleInventory inv = new SimpleInventory(items.size());
+    private Container getAsInventory(List<ItemStack> items) {
+        SimpleContainer inv = new SimpleContainer(items.size());
 
         for (int slot = 0; slot < items.size(); ++slot)
-            inv.setStack(slot, items.get(slot));
+            inv.setItem(slot, items.get(slot));
 
         return inv;
     }

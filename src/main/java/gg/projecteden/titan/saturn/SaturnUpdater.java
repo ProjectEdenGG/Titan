@@ -6,7 +6,7 @@ import gg.projecteden.titan.update.GitResponse;
 import joptsimple.internal.Strings;
 import lombok.SneakyThrows;
 import net.fabricmc.loader.api.FabricLoader;
-import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.Minecraft;
 import org.apache.commons.io.FileUtils;
 import org.eclipse.jgit.api.CloneCommand;
 import org.eclipse.jgit.api.Git;
@@ -170,7 +170,7 @@ public enum SaturnUpdater {
 							git.checkout()
 									.setName(branch)
 									.call();
-							MinecraftClient.getInstance().reloadResources();
+							Minecraft.getInstance().reloadResourcePacks();
 						} catch (Exception e) {
 							Titan.log("Failed to checkout " + branch);
 							e.printStackTrace();
@@ -228,7 +228,7 @@ public enum SaturnUpdater {
 									.setName(branch)
 									.setStartPoint(remoteBranchRef)
 									.call();
-							MinecraftClient.getInstance().reloadResources();
+							Minecraft.getInstance().reloadResourcePacks();
 						} catch (Exception e) {
 							Titan.log("Could not checkout to new branch " + branch);
 							e.printStackTrace();
@@ -236,7 +236,7 @@ public enum SaturnUpdater {
 					});
 				}
 
-				MinecraftClient.getInstance().reloadResources();
+				Minecraft.getInstance().reloadResourcePacks();
 			} catch (Exception e) {
 				Titan.log("Error: " + e.getMessage());
 			}

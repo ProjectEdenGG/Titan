@@ -4,15 +4,15 @@ import gg.projecteden.titan.Titan;
 import gg.projecteden.titan.utils.NexusAPI;
 import gg.projecteden.titan.utils.Utils;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
-import net.minecraft.item.ItemGroup;
-import net.minecraft.item.ItemGroup.DisplayContext;
-import net.minecraft.item.ItemGroup.Row;
-import net.minecraft.item.ItemGroup.StackVisibility;
-import net.minecraft.registry.Registries;
-import net.minecraft.registry.Registry;
-import net.minecraft.resource.featuretoggle.FeatureFlags;
-import net.minecraft.resource.featuretoggle.FeatureSet;
-import net.minecraft.text.Text;
+import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.flag.FeatureFlagSet;
+import net.minecraft.world.flag.FeatureFlags;
+import net.minecraft.world.item.CreativeModeTab;
+import net.minecraft.world.item.CreativeModeTab.ItemDisplayParameters;
+import net.minecraft.world.item.CreativeModeTab.Row;
+import net.minecraft.world.item.CreativeModeTab.TabVisibility;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -21,28 +21,28 @@ import java.util.Map;
 public class CustomCreativeTabs {
 
     public static final Map<String, String> CATEGORY_PREFIXES = new HashMap<>();
-    public static final Map<String, ItemGroup> GROUPS = new HashMap<>();
+    public static final Map<String, CreativeModeTab> GROUPS = new HashMap<>();
     public static final Map<String, CustomCreativeItem[]> ITEMS = new HashMap<>();
 
     public static void init(String title, CustomCreativeItem icon, int index) {
         String id = toId(title);
-        ItemGroup group = register(id, new ItemGroup.Builder(index % 10 < 5 ? Row.TOP : Row.BOTTOM, index % 5)
-                .displayName(Text.literal(title))
+        CreativeModeTab group = register(id, new CreativeModeTab.Builder(index % 10 < 5 ? Row.TOP : Row.BOTTOM, index % 5)
+                .title(Component.literal(title))
                 .icon(icon::getItemStack)
-                .entries(((displayContext, entries) -> {
+                .displayItems(((displayContext, entries) -> {
                     if (!ITEMS.containsKey(id) || ITEMS.get(id) == null)
                         return;
                     for (CustomCreativeItem item : ITEMS.get(id))
                         if (icon.getItemStack() != null)
-                            entries.add(item.getItemStack(), StackVisibility.PARENT_AND_SEARCH_TABS);
+                            entries.accept(item.getItemStack(), TabVisibility.PARENT_AND_SEARCH_TABS);
                 }))
                 .build());
 
         GROUPS.put(id, group);
     }
 
-    public static <T extends ItemGroup> T register(String name, T itemGroup) {
-        return Registry.register(Registries.ITEM_GROUP, Titan.id(name), itemGroup);
+    public static <T extends CreativeModeTab> T register(String name, T itemGroup) {
+        return Registry.register(BuiltInRegistries.CREATIVE_MODE_TAB, Titan.id(name), itemGroup);
     }
 
     public static void update() {
@@ -52,8 +52,8 @@ public class CustomCreativeTabs {
         for (String id : GROUPS.keySet()) {
             ITEMS.put(id, Arrays.stream(items).filter(item -> toId(item.category).equals(id)).toArray(CustomCreativeItem[]::new));
 
-            ItemGroup group = GROUPS.get(id);
-            group.updateEntries(new DisplayContext(FeatureSet.of(FeatureFlags.VANILLA), true, null));
+            CreativeModeTab group = GROUPS.get(id);
+            group.buildContents(new ItemDisplayParameters(FeatureFlagSet.of(FeatureFlags.VANILLA), true, null));
         }
     }
 
@@ -65,8 +65,8 @@ public class CustomCreativeTabs {
         ITEMS.clear();
 
         for (String id : GROUPS.keySet()) {
-            ItemGroup group = GROUPS.get(id);
-            group.updateEntries(new DisplayContext(FeatureSet.of(FeatureFlags.VANILLA), true, null));
+            CreativeModeTab group = GROUPS.get(id);
+            group.buildContents(new ItemDisplayParameters(FeatureFlagSet.of(FeatureFlags.VANILLA), true, null));
         }
     }
 

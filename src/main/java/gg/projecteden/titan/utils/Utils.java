@@ -1,20 +1,20 @@
 package gg.projecteden.titan.utils;
 
 import com.google.gson.Gson;
+import com.mojang.blaze3d.platform.InputConstants;
+import com.mojang.blaze3d.platform.Window;
 import gg.projecteden.titan.Titan;
 import joptsimple.internal.Strings;
 import lombok.SneakyThrows;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.network.ClientPlayNetworkHandler;
-import net.minecraft.client.util.InputUtil;
-import net.minecraft.client.util.Window;
-import net.minecraft.component.DataComponentTypes;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtList;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.multiplayer.ClientPacketListener;
+import net.minecraft.core.NonNullList;
+import net.minecraft.core.RegistryAccess;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.NbtOps;
-import net.minecraft.registry.DynamicRegistryManager;
-import net.minecraft.util.collection.DefaultedList;
+import net.minecraft.world.item.ItemStack;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
@@ -45,11 +45,11 @@ public class Utils {
 	}
 
 	public static boolean isOnEden() {
-		final ClientPlayNetworkHandler handler = MinecraftClient.getInstance().getNetworkHandler();
+		final ClientPacketListener handler = Minecraft.getInstance().getConnection();
 		if (handler == null)
 			return false;
 
-		String address = handler.getConnection().getAddress().toString();
+		String address = handler.getConnection().getRemoteAddress().toString();
 		if (address == null)
 			return false;
         address = address.toLowerCase();
@@ -105,19 +105,19 @@ public class Utils {
 	}
 
 
-	public static DefaultedList<ItemStack> getStoredItems(DynamicRegistryManager registryManager, ItemStack stack) {
-		if (!stack.contains(DataComponentTypes.CUSTOM_DATA))
-			return DefaultedList.of();
+	public static NonNullList<ItemStack> getStoredItems(RegistryAccess registryManager, ItemStack stack) {
+		if (!stack.has(DataComponents.CUSTOM_DATA))
+			return NonNullList.create();
 
-		NbtCompound nbt = stack.get(DataComponentTypes.CUSTOM_DATA).copyNbt();
+		CompoundTag nbt = stack.get(DataComponents.CUSTOM_DATA).copyTag();
 
 		if (nbt != null && nbt.contains("ProjectEden")) {
-			NbtCompound projectEden = nbt.getCompound("ProjectEden").get();
+			CompoundTag projectEden = nbt.getCompound("ProjectEden").get();
 
 			if (projectEden.contains("Items")) {
-				DefaultedList<ItemStack> items = DefaultedList.of();
-				Map<Integer, NbtCompound> slotMap = new HashMap<>();
-				NbtList tagList = projectEden.getList("Items").get();
+				NonNullList<ItemStack> items = NonNullList.create();
+				Map<Integer, CompoundTag> slotMap = new HashMap<>();
+				ListTag tagList = projectEden.getList("Items").get();
 				final int count = tagList.size();
 
 				for (int i = 0; i < count; i++) {
@@ -132,7 +132,7 @@ public class Utils {
 						items.add(ItemStack.EMPTY);
 					else {
                         try {
-                            ItemStack stack2 = ItemStack.CODEC.parse(registryManager.getOps(NbtOps.INSTANCE), slotMap.get(i)).getOrThrow();
+                            ItemStack stack2 = ItemStack.CODEC.parse(registryManager.createSerializationContext(NbtOps.INSTANCE), slotMap.get(i)).getOrThrow();
                             items.add(stack2);
                         } catch (Throwable ex) {
                             Titan.log("Failed to load item: " + slotMap.get(i).toString());
@@ -144,11 +144,11 @@ public class Utils {
 			}
 		}
 
-		return DefaultedList.of();
+		return NonNullList.create();
 	}
 
 	public static boolean isControlPressed() {
-		var client = MinecraftClient.getInstance();
+		var client = Minecraft.getInstance();
 		if (client == null) return false;
 		var window = client.getWindow();
 		if (window == null) return false;
@@ -156,7 +156,7 @@ public class Utils {
 	}
 
 	public static boolean isShiftPressed() {
-		var client = MinecraftClient.getInstance();
+		var client = Minecraft.getInstance();
 		if (client == null) return false;
 		var window = client.getWindow();
 		if (window == null) return false;
@@ -165,7 +165,7 @@ public class Utils {
 
 	public static boolean isKeyPressed(Window window, int... keys) {
 		for (int key : keys)
-			if (InputUtil.isKeyPressed(window, key))
+			if (InputConstants.isKeyDown(window, key))
 				return true;
 		return false;
 	}

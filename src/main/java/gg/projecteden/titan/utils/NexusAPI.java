@@ -3,7 +3,7 @@ package gg.projecteden.titan.utils;
 import com.google.gson.Gson;
 import gg.projecteden.titan.Titan;
 import gg.projecteden.titan.creative.CustomCreativeItem;
-import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.Minecraft;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
@@ -54,7 +54,7 @@ public class NexusAPI {
     }
 
     private static String getUUID() {
-        UUID uuid = MinecraftClient.getInstance().getSession().getUuidOrNull();
+        UUID uuid = Minecraft.getInstance().getUser().getProfileId();
         if (uuid == null)
             return UUID.randomUUID().toString();
         return uuid.toString();

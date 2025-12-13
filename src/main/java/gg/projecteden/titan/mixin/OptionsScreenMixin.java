@@ -2,17 +2,17 @@ package gg.projecteden.titan.mixin;
 
 import gg.projecteden.titan.Titan;
 import gg.projecteden.titan.saturn.Saturn;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gl.RenderPipelines;
-import net.minecraft.client.gui.Drawable;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.gui.screen.pack.PackListWidget;
-import net.minecraft.client.gui.screen.pack.PackScreen;
-import net.minecraft.client.gui.tooltip.Tooltip;
-import net.minecraft.client.gui.widget.ButtonWidget;
-import net.minecraft.client.gui.widget.TextIconButtonWidget;
-import net.minecraft.client.gui.widget.ThreePartsLayoutWidget;
-import net.minecraft.text.Text;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.components.Renderable;
+import net.minecraft.client.gui.components.SpriteIconButton;
+import net.minecraft.client.gui.components.Tooltip;
+import net.minecraft.client.gui.layouts.HeaderAndFooterLayout;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.gui.screens.packs.PackSelectionScreen;
+import net.minecraft.client.gui.screens.packs.TransferableSelectionList;
+import net.minecraft.client.renderer.RenderPipelines;
+import net.minecraft.network.chat.Component;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -24,31 +24,31 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import static gg.projecteden.titan.Titan.PE_LOGO_IDEN;
 import static gg.projecteden.titan.Titan.UPDATE_AVAILABLE;
 
-@Mixin(PackScreen.class)
+@Mixin(PackSelectionScreen.class)
 public class OptionsScreenMixin extends Screen {
 
-	@Shadow @Final private ThreePartsLayoutWidget layout;
-	@Shadow private PackListWidget availablePackList;
-	@Shadow private PackListWidget selectedPackList;
+	@Shadow @Final private HeaderAndFooterLayout layout;
+	@Shadow private TransferableSelectionList availablePackList;
+	@Shadow private TransferableSelectionList selectedPackList;
 	@Unique
 	private boolean updateAvailable;
 	@Unique
-	private TextIconButtonWidget button;
+	private SpriteIconButton button;
 	@Unique
-	private Drawable updateIcon;
+	private Renderable updateIcon;
 
     @Unique
-	ButtonWidget.PressAction action = button -> {
+	Button.OnPress action = button -> {
 		if (updateAvailable) {
 			Saturn.queueProcess(() -> {
 				if (Saturn.update())
-					MinecraftClient.getInstance().reloadResources();
+					Minecraft.getInstance().reloadResourcePacks();
 			});
-			MinecraftClient.getInstance().reloadResources();
+			Minecraft.getInstance().reloadResourcePacks();
 		}
 	};
 
-	protected OptionsScreenMixin(Text title) {
+	protected OptionsScreenMixin(Component title) {
 		super(title);
 	}
 
@@ -67,12 +67,12 @@ public class OptionsScreenMixin extends Screen {
                         """;
 		}
 
-		button = this.addDrawableChild(TextIconButtonWidget.builder(Text.of(""), action, true)
+		button = this.addRenderableWidget(SpriteIconButton.builder(Component.nullToEmpty(""), action, true)
 				.width(20)
-				.texture(PE_LOGO_IDEN, 20, 20)
+				.sprite(PE_LOGO_IDEN, 20, 20)
 				.build());
 		button.setPosition(this.width - 26, 6);
-		button.setTooltip(Tooltip.of(Text.literal(tooltipText)));
+		button.setTooltip(Tooltip.create(Component.literal(tooltipText)));
 
 		if (updateAvailable || Titan.debug)
 			renderUpdateIcon();
@@ -81,7 +81,7 @@ public class OptionsScreenMixin extends Screen {
 
 	}
 
-	@Inject(method = "refreshWidgetPositions", at = @At("RETURN"))
+	@Inject(method = "repositionElements", at = @At("RETURN"))
 	void refreshWidgetPositions(CallbackInfo ci) {
 		if (button != null)
 			button.setPosition(this.width - 26, 6);
@@ -89,8 +89,8 @@ public class OptionsScreenMixin extends Screen {
 
 	@Unique
 	private void renderUpdateIcon() {
-		updateIcon = this.addDrawable((context, mouseX, mouseY, delta) -> {
-			context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, UPDATE_AVAILABLE, this.width - 8, 0, 5, 20);
+		updateIcon = this.addRenderableOnly((context, mouseX, mouseY, delta) -> {
+			context.blitSprite(RenderPipelines.GUI_TEXTURED, UPDATE_AVAILABLE, this.width - 8, 0, 5, 20);
 		});
 	}
 

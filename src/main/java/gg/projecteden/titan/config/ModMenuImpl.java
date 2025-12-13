@@ -11,8 +11,8 @@ import me.shedaniel.clothconfig2.api.ConfigBuilder;
 import me.shedaniel.clothconfig2.api.ConfigCategory;
 import me.shedaniel.clothconfig2.api.ConfigEntryBuilder;
 import me.shedaniel.clothconfig2.impl.builders.AbstractFieldBuilder;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.text.Text;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.network.chat.Component;
 
 import java.lang.reflect.Field;
 import java.util.LinkedHashMap;
@@ -29,7 +29,7 @@ public class ModMenuImpl implements ModMenuApi {
 	}
 
 	public static Screen getConfigScreen(Screen parent) {
-		ConfigBuilder builder = ConfigBuilder.create().setTitle(Text.literal("Titan Config"));
+		ConfigBuilder builder = ConfigBuilder.create().setTitle(Component.literal("Titan Config"));
 		ConfigEntryBuilder entryBuilder = ConfigEntryBuilder.create();
 
 		Map<String, ConfigCategory> categories = new LinkedHashMap<>();
@@ -56,12 +56,12 @@ public class ModMenuImpl implements ModMenuApi {
 				return;
 
 			ConfigItem item = (ConfigItem) field.get(null);
-			Text name = Text.literal(field.isAnnotationPresent(Name.class) ? field.getAnnotation(Name.class).value() : field.getName());
-			Text description = field.isAnnotationPresent(Description.class) ? Text.literal(field.getAnnotation(Description.class).value()) : null;
+			Component name = Component.literal(field.isAnnotationPresent(Name.class) ? field.getAnnotation(Name.class).value() : field.getName());
+			Component description = field.isAnnotationPresent(Description.class) ? Component.literal(field.getAnnotation(Description.class).value()) : null;
 
 			AbstractFieldBuilder selector = switch (item.getType()) {
 				case BOOLEAN -> entryBuilder.startBooleanToggle(name, (Boolean) item.getValue());
-				case ENUM -> entryBuilder.startEnumSelector(name, (Class) item.getValue().getClass(), (Enum<?>) item.getValue()).setEnumNameProvider(val -> Text.literal(camelCase(((Enum) val).name())));
+				case ENUM -> entryBuilder.startEnumSelector(name, (Class) item.getValue().getClass(), (Enum<?>) item.getValue()).setEnumNameProvider(val -> Component.literal(camelCase(((Enum) val).name())));
 				case INTEGER -> entryBuilder.startIntField(name, (Integer) item.getValue());
 				case DOUBLE -> entryBuilder.startDoubleField(name, (Double) item.getValue());
 				case STRING -> entryBuilder.startStrField(name, (String) item.getValue());
@@ -80,7 +80,7 @@ public class ModMenuImpl implements ModMenuApi {
 			selector.setTooltip(description);
 
 			categories.computeIfAbsent(field.isAnnotationPresent(Group.class) ? field.getAnnotation(Group.class).value() : "Default",
-							cat -> builder.getOrCreateCategory(Text.literal(cat)))
+							cat -> builder.getOrCreateCategory(Component.literal(cat)))
 					.addEntry(selector.build());
 
 		} catch (Exception ex) {

@@ -3,7 +3,7 @@ package gg.projecteden.titan.update;
 import com.google.gson.Gson;
 import gg.projecteden.titan.Titan;
 import gg.projecteden.titan.utils.Utils;
-import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.Minecraft;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
@@ -21,7 +21,7 @@ public class TitanUpdater {
 
 	public static UpdateStatus updateStatus = UpdateStatus.NONE;
 	public static Date buildDate;
-	public static final String mcVersion = MinecraftClient.getInstance().getGameVersion();
+	public static final String mcVersion = Minecraft.getInstance().getLaunchedVersion();
 
 	public static void checkForUpdates() {
 		updateBuildDate();

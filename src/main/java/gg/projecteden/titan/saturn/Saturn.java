@@ -5,8 +5,8 @@ import gg.projecteden.titan.network.ServerClientMessaging;
 import gg.projecteden.titan.network.serverbound.Versions;
 import lombok.Getter;
 import net.fabricmc.loader.api.FabricLoader;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.resource.ResourcePackManager;
+import net.minecraft.client.Minecraft;
+import net.minecraft.server.packs.repository.PackRepository;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -75,22 +75,22 @@ public class Saturn {
 	}
 
 	public static void enable() {
-		ResourcePackManager manager = MinecraftClient.getInstance().getResourcePackManager();
-		if (!manager.getEnabledIds().contains("file/Saturn")) {
-			List<String> packs = new ArrayList<>(manager.getEnabledIds());
+		PackRepository manager = Minecraft.getInstance().getResourcePackRepository();
+		if (!manager.getSelectedIds().contains("file/Saturn")) {
+			List<String> packs = new ArrayList<>(manager.getSelectedIds());
 			packs.add("file/Saturn");
-			manager.setEnabledProfiles(packs);
-			MinecraftClient.getInstance().reloadResources();
+			manager.setSelected(packs);
+			Minecraft.getInstance().reloadResourcePacks();
 		}
 	}
 
 	public static void disable() {
-		ResourcePackManager manager = MinecraftClient.getInstance().getResourcePackManager();
-		if (manager.getEnabledIds().contains("file/Saturn")) {
-			List<String> packs = new ArrayList<>(manager.getEnabledIds());
+		PackRepository manager = Minecraft.getInstance().getResourcePackRepository();
+		if (manager.getSelectedIds().contains("file/Saturn")) {
+			List<String> packs = new ArrayList<>(manager.getSelectedIds());
 			packs.remove("file/Saturn");
-			manager.setEnabledProfiles(packs);
-			MinecraftClient.getInstance().reloadResources();
+			manager.setSelected(packs);
+			Minecraft.getInstance().reloadResourcePacks();
 		}
 	}
 

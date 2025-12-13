@@ -5,17 +5,17 @@ import gg.projecteden.titan.update.TitanUpdater;
 import gg.projecteden.titan.update.UpdateStatus;
 import gg.projecteden.titan.utils.Utils;
 import net.fabricmc.loader.api.FabricLoader;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gl.RenderPipelines;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.gui.screen.TitleScreen;
-import net.minecraft.client.gui.screen.multiplayer.ConnectScreen;
-import net.minecraft.client.gui.widget.ButtonWidget;
-import net.minecraft.client.gui.widget.TextIconButtonWidget;
-import net.minecraft.client.network.ServerAddress;
-import net.minecraft.client.network.ServerInfo;
-import net.minecraft.client.option.ServerList;
-import net.minecraft.text.Text;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.components.SpriteIconButton;
+import net.minecraft.client.gui.screens.ConnectScreen;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.gui.screens.TitleScreen;
+import net.minecraft.client.multiplayer.ServerData;
+import net.minecraft.client.multiplayer.ServerList;
+import net.minecraft.client.multiplayer.resolver.ServerAddress;
+import net.minecraft.client.renderer.RenderPipelines;
+import net.minecraft.network.chat.Component;
 import net.minecraft.util.Util;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
@@ -30,22 +30,22 @@ import static gg.projecteden.titan.Titan.UPDATE_AVAILABLE;
 public class TitleScreenMixin extends Screen {
 
 	@Unique
-	private static ServerInfo serverInfo;
+	private static ServerData serverInfo;
 
 	// Just have to have this due to screen methods
-	protected TitleScreenMixin(Text title) {
+	protected TitleScreenMixin(Component title) {
 		super(title);
 	}
 
-	@Inject(at = @At("RETURN"), method = "addNormalWidgets")
+	@Inject(at = @At("RETURN"), method = "createNormalMenuOptions")
 	private void addDirectServerButton(int y, int spacingY, CallbackInfoReturnable ci) {
 		if (TitleScreenMixin.serverInfo == null) {
-			ServerInfo serverInfo = null;
-			ServerList serverList = new ServerList(MinecraftClient.getInstance());
+			ServerData serverInfo = null;
+			ServerList serverList = new ServerList(Minecraft.getInstance());
 			String[] ignoredSubs = { "update", "test", "prespace", "old" };
 			servers:
 			for (int i = 0; i < serverList.size(); i++) {
-				String ip = serverList.get(i).address.toLowerCase();
+				String ip = serverList.get(i).ip.toLowerCase();
 				if (ip.contains("projecteden.gg")) {
 					for (String ignored : ignoredSubs)
 						if (ip.contains(ignored))
@@ -55,7 +55,7 @@ public class TitleScreenMixin extends Screen {
 				}
 			}
 			if (serverInfo == null)
-				serverInfo = new ServerInfo("project-eden", "projecteden.gg", ServerInfo.ServerType.OTHER);
+				serverInfo = new ServerData("project-eden", "projecteden.gg", ServerData.Type.OTHER);
 
 			TitleScreenMixin.serverInfo = serverInfo;
 		}
@@ -64,15 +64,15 @@ public class TitleScreenMixin extends Screen {
 		if (modMenu)
 			y -= spacingY;
 
-		ButtonWidget.PressAction action = button -> {
+		Button.OnPress action = button -> {
 			if (TitanUpdater.updateStatus == UpdateStatus.AVAILABLE && Utils.isShiftPressed()) {
-				Util.getOperatingSystem().open(Titan.MODRINTH_URL);
+				Util.getPlatform().openUri(Titan.MODRINTH_URL);
 			} else
-				ConnectScreen.connect(this, MinecraftClient.getInstance(), ServerAddress.parse("projecteden.gg"), TitleScreenMixin.serverInfo, false, null);
+				ConnectScreen.startConnecting(this, Minecraft.getInstance(), ServerAddress.parseString("projecteden.gg"), TitleScreenMixin.serverInfo, false, null);
 		};
-		TextIconButtonWidget textIconButtonWidget = this.addDrawableChild(TextIconButtonWidget.builder(Text.of(""), action, true)
+		SpriteIconButton textIconButtonWidget = this.addRenderableWidget(SpriteIconButton.builder(Component.nullToEmpty(""), action, true)
 						.width(20)
-						.texture(PE_LOGO_IDEN, 20, 20)
+						.sprite(PE_LOGO_IDEN, 20, 20)
 						.build());
 		textIconButtonWidget.setPosition(this.width / 2 + 104, y - spacingY);
 		textIconButtonWidget.setTooltip(TitanUpdater.updateStatus.getTitleScreenTooltip());
@@ -83,8 +83,8 @@ public class TitleScreenMixin extends Screen {
 
 		if (TitanUpdater.updateStatus != UpdateStatus.NONE || Titan.debug) {
 			int finalY = y;
-			this.addDrawable((context, mouseX, mouseY, delta) -> {
-				context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, UPDATE_AVAILABLE, this.width / 2 + 120, finalY, 5, 20);
+			this.addRenderableOnly((context, mouseX, mouseY, delta) -> {
+				context.blitSprite(RenderPipelines.GUI_TEXTURED, UPDATE_AVAILABLE, this.width / 2 + 120, finalY, 5, 20);
 			});
 		}
 	}

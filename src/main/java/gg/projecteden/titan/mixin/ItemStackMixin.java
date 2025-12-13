@@ -2,14 +2,14 @@ package gg.projecteden.titan.mixin;
 
 import gg.projecteden.titan.config.ConfigItem;
 import gg.projecteden.titan.utils.Utils;
-import net.minecraft.component.ComponentMap;
-import net.minecraft.component.DataComponentTypes;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.tooltip.TooltipType;
-import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
+import net.minecraft.ChatFormatting;
+import net.minecraft.core.component.DataComponentMap;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.TooltipFlag;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
@@ -24,34 +24,34 @@ import static gg.projecteden.titan.utils.Utils.getStoredItems;
 @Mixin(ItemStack.class)
 public abstract class ItemStackMixin {
 
-    @Shadow public abstract ComponentMap getComponents();
+    @Shadow public abstract DataComponentMap getComponents();
 
     @Shadow public abstract ItemStack copy();
 
     @Unique
-    private static final Text HOVER = Text.literal("Hold ").formatted(Formatting.DARK_AQUA)
-            .append(Text.literal("Shift").formatted(Formatting.YELLOW))
-            .append(" to view contents").formatted(Formatting.DARK_AQUA);
+    private static final Component HOVER = Component.literal("Hold ").withStyle(ChatFormatting.DARK_AQUA)
+            .append(Component.literal("Shift").withStyle(ChatFormatting.YELLOW))
+            .append(" to view contents").withStyle(ChatFormatting.DARK_AQUA);
 
-    @Inject(at = @At("RETURN"), method = "getTooltip")
-    private void addBackpackPreviewLore(Item.TooltipContext context, PlayerEntity player, TooltipType type, CallbackInfoReturnable<List<Text>> ci) {
+    @Inject(at = @At("RETURN"), method = "getTooltipLines")
+    private void addBackpackPreviewLore(Item.TooltipContext context, Player player, TooltipFlag type, CallbackInfoReturnable<List<Component>> ci) {
         if (!ConfigItem.DO_BACKPACK_PREVIEWS.getValue())
             return;
 
         if (!ConfigItem.PREVIEWS_REQUIRE_SHIFT.getValue() || Utils.isShiftPressed())
             return;
 
-        if (!this.getComponents().contains(DataComponentTypes.CUSTOM_DATA))
+        if (!this.getComponents().has(DataComponents.CUSTOM_DATA))
             return;
 
         if (player == null)
             return;
 
-        if (getStoredItems(player.getEntityWorld().getRegistryManager(), this.copy()).isEmpty())
+        if (getStoredItems(player.level().registryAccess(), this.copy()).isEmpty())
             return;
 
         var tooltip = ci.getReturnValue();
-        tooltip.add(Text.empty());
+        tooltip.add(Component.empty());
         tooltip.add(HOVER);
     }
 }

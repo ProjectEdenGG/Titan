@@ -11,13 +11,9 @@ import gg.projecteden.titan.config.annotations.OldConfig;
 import gg.projecteden.titan.network.ServerClientMessaging;
 import gg.projecteden.titan.network.serverbound.TitanConfig;
 import net.fabricmc.loader.api.FabricLoader;
-import net.minecraft.util.JsonHelper;
+import net.minecraft.util.GsonHelper;
 
-import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.Reader;
+import java.io.*;
 import java.lang.reflect.Field;
 import java.nio.file.Path;
 
@@ -164,11 +160,11 @@ public class Config {
 			return;
 
 		Object val = switch (item.getType()) {
-            case BOOLEAN -> JsonHelper.getBoolean(json, path);
-            case ENUM -> Enum.valueOf((Class) item.getValue().getClass(), JsonHelper.getString(json, path).toUpperCase());
-            case INTEGER -> JsonHelper.getInt(json, path);
-            case DOUBLE -> JsonHelper.getDouble(json, path);
-            case STRING -> JsonHelper.getString(json, path);
+            case BOOLEAN -> GsonHelper.getAsBoolean(json, path);
+            case ENUM -> Enum.valueOf((Class) item.getValue().getClass(), GsonHelper.getAsString(json, path).toUpperCase());
+            case INTEGER -> GsonHelper.getAsInt(json, path);
+            case DOUBLE -> GsonHelper.getAsDouble(json, path);
+            case STRING -> GsonHelper.getAsString(json, path);
             case UNKNOWN -> null;
         };
 

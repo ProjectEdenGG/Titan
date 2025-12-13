@@ -14,9 +14,9 @@ import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.ModContainer;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.text.Text;
-import net.minecraft.util.Identifier;
+import net.minecraft.client.Minecraft;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.Identifier;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -26,9 +26,9 @@ public class Titan implements ModInitializer {
 	public static final String MOD_ID = "titan";
 	public static final String PREFIX = String.format("[%s] ", Titan.class.getSimpleName());
 	public static Logger LOGGER = LogManager.getLogger();
-	public static final Identifier PE_LOGO_IDEN = Identifier.of(MOD_ID, "main_menu_button");
-	public static final Identifier UPDATE_AVAILABLE = Identifier.of(MOD_ID, "icon/unseen_notification");
-	public static final Identifier UPDATING_SATURN = Identifier.of(MOD_ID, "textures/gui/updating_saturn.png");
+	public static final Identifier PE_LOGO_IDEN = Identifier.fromNamespaceAndPath(MOD_ID, "main_menu_button");
+	public static final Identifier UPDATE_AVAILABLE = Identifier.fromNamespaceAndPath(MOD_ID, "icon/unseen_notification");
+	public static final Identifier UPDATING_SATURN = Identifier.fromNamespaceAndPath(MOD_ID, "textures/gui/updating_saturn.png");
 	public static final String MODRINTH_URL = "https://modrinth.com/mod/titan";
 	public static final String MODRINTH_SLUG = "f44hEoWP";
 	public static final String MODRINTH_TOKEN = "mrp_oyEJu5NksuJpOuRNQmHoisTES9DFdMMzATX8gFhySvNqVbHcHEzM8WD9Za7V";
@@ -43,12 +43,12 @@ public class Titan implements ModInitializer {
 
 		LOGGER.info(PREFIX + "Debug: " + message);
 
-		if (MinecraftClient.getInstance() != null && MinecraftClient.getInstance().inGameHud != null && MinecraftClient.getInstance().inGameHud.getChatHud() != null)
-			MinecraftClient.getInstance().inGameHud.getChatHud().addMessage(Text.literal(PREFIX + message));
+		if (Minecraft.getInstance() != null && Minecraft.getInstance().gui != null && Minecraft.getInstance().gui.getChat() != null)
+			Minecraft.getInstance().gui.getChat().addMessage(Component.literal(PREFIX + message));
 	}
 
 	public static Identifier id(String name) {
-		return Identifier.of(MOD_ID, name);
+		return Identifier.fromNamespaceAndPath(MOD_ID, name);
 	}
 
 	@NotNull

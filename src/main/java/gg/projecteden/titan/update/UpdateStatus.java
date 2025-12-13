@@ -1,11 +1,11 @@
 package gg.projecteden.titan.update;
 
-import net.minecraft.client.gui.tooltip.Tooltip;
-import net.minecraft.text.Text;
+import net.minecraft.client.gui.components.Tooltip;
+import net.minecraft.network.chat.Component;
 
 public enum UpdateStatus {
-	NONE(Tooltip.of(Text.of("Connect directly to projecteden.gg"))),
-	AVAILABLE(Tooltip.of(Text.of("An update for Titan is available. Shift-Click to open the mod's page")));
+	NONE(Tooltip.create(Component.nullToEmpty("Connect directly to projecteden.gg"))),
+	AVAILABLE(Tooltip.create(Component.nullToEmpty("An update for Titan is available. Shift-Click to open the mod's page")));
 
 	final Tooltip titleScreenTooltip;
 

@@ -2,36 +2,36 @@ package gg.projecteden.titan.mixin;
 
 import gg.projecteden.titan.Titan;
 import gg.projecteden.titan.saturn.Saturn;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gl.RenderPipelines;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.screen.SplashOverlay;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.screens.LoadingOverlay;
+import net.minecraft.client.renderer.RenderPipelines;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-@Mixin(SplashOverlay.class)
+@Mixin(LoadingOverlay.class)
 public class SplashOverlayMixin {
 
 	@Shadow
-	private float progress;
+	private float currentProgress;
 
-	@Inject(method = "renderProgressBar", at = @At("RETURN"))
-	private void start(DrawContext context, int minX, int minY, int maxX, int maxY, float opacity, CallbackInfo ci) {
-		if (this.progress < 0.5F)
+	@Inject(method = "drawProgressBar", at = @At("RETURN"))
+	private void start(GuiGraphics context, int minX, int minY, int maxX, int maxY, float opacity, CallbackInfo ci) {
+		if (this.currentProgress < 0.5F)
 			return;
 
 		if (!Saturn.queuedProcesses.isEmpty() || Titan.debug) {
-			MinecraftClient client = MinecraftClient.getInstance();
+			Minecraft client = Minecraft.getInstance();
 			if (client == null || client.getWindow() == null) return;
 
 			int baseScreenWidth = 1920;
 			int baseImageWidth = 261;
 			int baseImageHeight = 19;
 
-			int screenWidth = client.getWindow().getScaledWidth();
+			int screenWidth = client.getWindow().getGuiScaledWidth();
 
 			float scale = Math.min(screenWidth / (float) baseScreenWidth, 1.0f);
 			scale = Math.max(scale, 0.5f);
@@ -42,10 +42,10 @@ public class SplashOverlayMixin {
 			int x = (screenWidth - imageWidth) / 2;
 			int y = minY - imageHeight - imageHeight;
 
-			context.drawTexture(RenderPipelines.GUI_TEXTURED, Titan.UPDATING_SATURN, x, y, 0, 0, imageWidth, imageHeight, imageWidth, imageHeight);
+			context.blit(RenderPipelines.GUI_TEXTURED, Titan.UPDATING_SATURN, x, y, 0, 0, imageWidth, imageHeight, imageWidth, imageHeight);
 		}
 
-		if (this.progress < 0.6F)
+		if (this.currentProgress < 0.6F)
 			return;
 
 		for (Runnable runnable : Saturn.queuedProcesses)

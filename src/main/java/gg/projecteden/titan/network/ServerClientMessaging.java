@@ -10,12 +10,12 @@ import io.netty.buffer.ByteBuf;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.network.encoding.StringEncoding;
-import net.minecraft.network.packet.CustomPayload;
-import net.minecraft.util.Identifier;
+import net.minecraft.client.Minecraft;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.Utf8String;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.Identifier;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -26,11 +26,11 @@ import static gg.projecteden.titan.Titan.MOD_ID;
 
 public class ServerClientMessaging {
 
-	public record TitanPacket(String packet) implements CustomPayload {
-		private static final Identifier NETWORKING_CHANNEL = Identifier.of(MOD_ID, "networking");
+	public record TitanPacket(String packet) implements CustomPacketPayload {
+		private static final Identifier NETWORKING_CHANNEL = Identifier.fromNamespaceAndPath(MOD_ID, "networking");
 
-		public static final CustomPayload.Id<TitanPacket> PACKET_ID = new CustomPayload.Id<>(NETWORKING_CHANNEL);
-		public static final PacketCodec<RegistryByteBuf, TitanPacket> PACKET_CODEC = PacketCodec.tuple(new PacketCodec<ByteBuf, String>() {
+		public static final CustomPacketPayload.Type<TitanPacket> PACKET_ID = new CustomPacketPayload.Type<>(NETWORKING_CHANNEL);
+		public static final StreamCodec<RegistryFriendlyByteBuf, TitanPacket> PACKET_CODEC = StreamCodec.composite(new StreamCodec<ByteBuf, String>() {
 			public String decode(ByteBuf byteBuf) {
 				Titan.debug("Decoding...");
 				Titan.debug("Readable bytes: " + byteBuf.readableBytes());
@@ -45,12 +45,12 @@ public class ServerClientMessaging {
 
 			public void encode(ByteBuf byteBuf, String string) {
 				Titan.debug("Encoding...");
-				StringEncoding.encode(byteBuf, string, 10000);
+				Utf8String.write(byteBuf, string, 10000);
 			}
 		}, TitanPacket::packet, TitanPacket::new);
 
 		@Override
-		public CustomPayload.Id<? extends CustomPayload> getId() {
+		public CustomPacketPayload.Type<? extends CustomPacketPayload> type() {
 			return PACKET_ID;
 		}
 
@@ -84,7 +84,7 @@ public class ServerClientMessaging {
 	public static final List<Serverbound> toSend = new ArrayList<>();
 
 	public static void send(Serverbound serverbound) {
-		if (MinecraftClient.getInstance() != null && MinecraftClient.getInstance().getNetworkHandler() != null)
+		if (Minecraft.getInstance() != null && Minecraft.getInstance().getConnection() != null)
 			toSend.add(serverbound);
 		else
 			Titan.debug("Cannot send packets while not online");
@@ -92,7 +92,7 @@ public class ServerClientMessaging {
 
 	private static void flush() {
 		if (toSend.isEmpty()) return;
-		if (MinecraftClient.getInstance() == null || MinecraftClient.getInstance().getNetworkHandler() == null) return;
+		if (Minecraft.getInstance() == null || Minecraft.getInstance().getConnection() == null) return;
 
 		Collections.reverse(toSend); // Prefer newer messages
 
