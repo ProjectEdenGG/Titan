@@ -4,25 +4,25 @@ import com.google.gson.Gson;
 import gg.projecteden.titan.Titan;
 import gg.projecteden.titan.creative.CustomCreativeItem;
 import net.minecraft.client.MinecraftClient;
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.util.EntityUtils;
+import org.apache.hc.client5.http.classic.methods.HttpGet;
+import org.apache.hc.client5.http.config.RequestConfig;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
+import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
+import org.apache.hc.core5.http.io.entity.EntityUtils;
+import org.apache.hc.core5.util.Timeout;
 
 import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 
 public class NexusAPI {
 
-    public static final int TIMEOUT = 5000;
+    public static final Timeout TIMEOUT = Timeout.ofMilliseconds(5000);
 
     public static <T> T get(String endpoint, Class<T> returnType) {
         RequestConfig requestConfig = RequestConfig.custom()
                 .setConnectTimeout(TIMEOUT)
                 .setConnectionRequestTimeout(TIMEOUT)
-                .setSocketTimeout(TIMEOUT)
                 .build();
 
         try (CloseableHttpClient client = HttpClientBuilder.create().build()) {

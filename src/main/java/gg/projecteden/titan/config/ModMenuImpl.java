@@ -10,6 +10,7 @@ import me.shedaniel.clothconfig2.api.ConfigBuilder;
 import me.shedaniel.clothconfig2.api.ConfigCategory;
 import me.shedaniel.clothconfig2.api.ConfigEntryBuilder;
 import me.shedaniel.clothconfig2.impl.builders.AbstractFieldBuilder;
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.text.Text;
 
@@ -36,7 +37,8 @@ public class ModMenuImpl implements ModMenuApi {
 		for (Field field : ConfigItem.getAllNonDeveloperOptions())
 			addOption(builder, entryBuilder, categories, field);
 
-		if (Screen.hasControlDown())
+		MinecraftClient.getInstance().getWindow().getHandle();
+		if (InputConstants)
 			for (Field field : ConfigItem.getDeveloperOptions())
 				addOption(builder, entryBuilder, categories, field);
 

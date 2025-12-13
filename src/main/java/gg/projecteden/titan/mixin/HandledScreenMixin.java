@@ -49,7 +49,7 @@ public class HandledScreenMixin {
 
     @Unique
     private void onRenderTooltipLast(DrawContext context, ItemStack stack, int x, int y, CallbackInfo ci) {
-        if (getStoredItems(MinecraftClient.getInstance().player.getWorld().getRegistryManager(), stack).isEmpty()) {
+        if (getStoredItems(MinecraftClient.getInstance().player.getEntityWorld().getRegistryManager(), stack).isEmpty()) {
             return;
         }
 
@@ -58,7 +58,7 @@ public class HandledScreenMixin {
 
     @Unique
     public void renderItemContentsPreview(ItemStack stack, int baseX, int baseY, DrawContext drawContext, CallbackInfo ci) {
-        DefaultedList<ItemStack> items = getStoredItems(MinecraftClient.getInstance().player.getWorld().getRegistryManager(), stack);
+        DefaultedList<ItemStack> items = getStoredItems(MinecraftClient.getInstance().player.getEntityWorld().getRegistryManager(), stack);
 
         InventoryOverlay.InventoryRenderType type = getType(stack);
         InventoryOverlay.InventoryProperties props = InventoryOverlay.getInventoryPropsTemp(type);

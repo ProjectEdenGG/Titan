@@ -47,7 +47,7 @@ public abstract class ItemStackMixin {
         if (player == null)
             return;
 
-        if (getStoredItems(player.getWorld().getRegistryManager(), this.copy()).isEmpty())
+        if (getStoredItems(player.getEntityWorld().getRegistryManager(), this.copy()).isEmpty())
             return;
 
         var tooltip = ci.getReturnValue();

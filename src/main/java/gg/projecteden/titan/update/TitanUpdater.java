@@ -4,12 +4,13 @@ import com.google.gson.Gson;
 import gg.projecteden.titan.Titan;
 import gg.projecteden.titan.utils.Utils;
 import net.minecraft.client.MinecraftClient;
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.util.EntityUtils;
+import org.apache.hc.client5.http.classic.methods.HttpGet;
+import org.apache.hc.client5.http.config.RequestConfig;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
+import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
+import org.apache.hc.core5.http.io.entity.EntityUtils;
+import org.apache.hc.core5.util.Timeout;
 
 import java.util.Arrays;
 import java.util.Comparator;
@@ -67,11 +68,10 @@ public class TitanUpdater {
 	}
 
 	private static ModrinthVersion[] getModrinthVersions() {
-		int timeout = 5000;
+		Timeout timeout = Timeout.ofMilliseconds(5000);
 		RequestConfig requestConfig = RequestConfig.custom()
 				.setConnectTimeout(timeout)
 				.setConnectionRequestTimeout(timeout)
-				.setSocketTimeout(timeout)
 				.build();
 
 		try (CloseableHttpClient client = HttpClientBuilder.create().build()) {
