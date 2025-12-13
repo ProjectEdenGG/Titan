@@ -2,16 +2,19 @@ package gg.projecteden.titan.utils;
 
 import com.mojang.blaze3d.opengl.GlStateManager;
 import com.mojang.blaze3d.textures.GpuTextureView;
+import com.mojang.datafixers.util.Pair;
 import gg.projecteden.titan.Titan;
+import gg.projecteden.titan.mixin.AbstractTextureMixin;
 import gg.projecteden.titan.mixin.DrawContextMixin;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.gl.GpuSampler;
 import net.minecraft.client.gl.RenderPipelines;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.ScreenRect;
 import net.minecraft.client.gui.render.state.SimpleGuiElementRenderState;
-import net.minecraft.client.texture.ResourceTexture;
+import net.minecraft.client.texture.AbstractTexture;
 import net.minecraft.client.texture.TextureSetup;
 import net.minecraft.inventory.Inventory;
 import net.minecraft.item.ItemStack;
@@ -44,30 +47,35 @@ public class InventoryOverlay {
     }
 
     public static void renderInventoryBackground(DrawContext context, int x, int y, int h1, int h2, int color, MinecraftClient mc) {
-        ResourceTexture tex = (ResourceTexture) mc.getTextureManager().getTexture(TEXTURE_54);
-        if (tex == null)
-            return;
-        GpuTextureView gpuTextureView = tex.getGlTextureView();
-        if (gpuTextureView == null) return;
+        Pair<GpuTextureView, GpuSampler> pair = bindTexture(TEXTURE_54);
+        if (pair == null) return;
 
-        drawTexturedRectBatched(context, gpuTextureView, x      , y     ,   0,   0,   7,  h1, color); // left (top)
-        drawTexturedRectBatched(context, gpuTextureView, x +   7, y     ,   7,   0, 169,   7, color); // top (right)
-        drawTexturedRectBatched(context, gpuTextureView, x + 169, y +  7, 169, 107,   7,  h1 - 1, color); // right (bottom)
-        drawTexturedRectBatched(context, gpuTextureView, x      , y + h1,   0, 215, 180,   7, color); // bottom (left)
-        drawTexturedRectBatched(context, gpuTextureView, x +   7, y +  7,   7,  17, 162,  h2, color); // middle
+        drawTexturedRectBatched(context, pair, x      , y     ,   0,   0,   7,  h1, color); // left (top)
+        drawTexturedRectBatched(context, pair, x +   7, y     ,   7,   0, 169,   7, color); // top (right)
+        drawTexturedRectBatched(context, pair, x + 169, y +  7, 169, 107,   7,  h1 - 1, color); // right (bottom)
+        drawTexturedRectBatched(context, pair, x      , y + h1,   0, 215, 180,   7, color); // bottom (left)
+        drawTexturedRectBatched(context, pair, x +   7, y +  7,   7,  17, 162,  h2, color); // middle
     }
 
-    public static void drawTexturedRectBatched(DrawContext drawContext, GpuTextureView gpuTextureView, int x, int y, int u, int v, int width, int height, int argb)
+    public static void drawTexturedRectBatched(DrawContext drawContext, Pair<GpuTextureView, GpuSampler> texture, int x, int y, int u, int v, int width, int height, int argb)
     {
         addSimpleElement(drawContext,
                 new TexturedRectGUIElement(
                         RenderPipelines.GUI_TEXTURED,
-                        TextureSetup.withoutGlTexture(gpuTextureView),
+                        TextureSetup.of(texture.getFirst(), texture.getSecond()),
                         new Matrix3x2f(drawContext.getMatrices()),
                         x, y, u, v,
                         width, height, argb,
                         peekLastScissor(drawContext))
         );
+    }
+
+    public static Pair<GpuTextureView, GpuSampler> bindTexture(Identifier id) {
+        if (id == null) return null;
+        AbstractTexture texture = MinecraftClient.getInstance().getTextureManager().getTexture(id);
+        if (texture != null && ((AbstractTextureMixin) texture).getGlTextureView() != null)
+            return Pair.of(texture.getGlTextureView(), texture.getSampler());
+        return null;
     }
 
     public static void addSimpleElement(DrawContext drawContext, SimpleGuiElementRenderState simpleElement) {

@@ -6,6 +6,8 @@ import joptsimple.internal.Strings;
 import lombok.SneakyThrows;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayNetworkHandler;
+import net.minecraft.client.util.InputUtil;
+import net.minecraft.client.util.Window;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
@@ -18,6 +20,7 @@ import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
 import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
+import org.lwjgl.glfw.GLFW;
 
 import java.io.File;
 import java.io.InputStream;
@@ -142,6 +145,29 @@ public class Utils {
 		}
 
 		return DefaultedList.of();
+	}
+
+	public static boolean isControlPressed() {
+		var client = MinecraftClient.getInstance();
+		if (client == null) return false;
+		var window = client.getWindow();
+		if (window == null) return false;
+		return isKeyPressed(window, GLFW.GLFW_KEY_LEFT_CONTROL, GLFW.GLFW_KEY_RIGHT_CONTROL);
+	}
+
+	public static boolean isShiftPressed() {
+		var client = MinecraftClient.getInstance();
+		if (client == null) return false;
+		var window = client.getWindow();
+		if (window == null) return false;
+		return isKeyPressed(window, GLFW.GLFW_KEY_LEFT_SHIFT, GLFW.GLFW_KEY_RIGHT_SHIFT);
+	}
+
+	public static boolean isKeyPressed(Window window, int... keys) {
+		for (int key : keys)
+			if (InputUtil.isKeyPressed(window, key))
+				return true;
+		return false;
 	}
 
 }

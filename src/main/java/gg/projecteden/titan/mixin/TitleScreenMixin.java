@@ -3,6 +3,7 @@ package gg.projecteden.titan.mixin;
 import gg.projecteden.titan.Titan;
 import gg.projecteden.titan.update.TitanUpdater;
 import gg.projecteden.titan.update.UpdateStatus;
+import gg.projecteden.titan.utils.Utils;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gl.RenderPipelines;
@@ -64,7 +65,7 @@ public class TitleScreenMixin extends Screen {
 			y -= spacingY;
 
 		ButtonWidget.PressAction action = button -> {
-			if (TitanUpdater.updateStatus == UpdateStatus.AVAILABLE && Screen.hasShiftDown()) {
+			if (TitanUpdater.updateStatus == UpdateStatus.AVAILABLE && Utils.isShiftPressed()) {
 				Util.getOperatingSystem().open(Titan.MODRINTH_URL);
 			} else
 				ConnectScreen.connect(this, MinecraftClient.getInstance(), ServerAddress.parse("projecteden.gg"), TitleScreenMixin.serverInfo, false, null);

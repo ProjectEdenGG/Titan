@@ -3,9 +3,9 @@ package gg.projecteden.titan.mixin;
 import com.mojang.blaze3d.systems.RenderSystem;
 import gg.projecteden.titan.config.ConfigItem;
 import gg.projecteden.titan.utils.InventoryOverlay;
+import gg.projecteden.titan.utils.Utils;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.screen.ingame.HandledScreen;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.NbtComponent;
@@ -40,7 +40,7 @@ public class HandledScreenMixin {
         if (!ConfigItem.DO_BACKPACK_PREVIEWS.getValue())
             return;
 
-        if (ConfigItem.PREVIEWS_REQUIRE_SHIFT.getValue() && !Screen.hasShiftDown())
+        if (ConfigItem.PREVIEWS_REQUIRE_SHIFT.getValue() && !Utils.isShiftPressed())
             return;
 
         if (this.focusedSlot != null && this.focusedSlot.hasStack())

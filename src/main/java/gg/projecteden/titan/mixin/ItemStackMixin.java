@@ -1,7 +1,7 @@
 package gg.projecteden.titan.mixin;
 
 import gg.projecteden.titan.config.ConfigItem;
-import net.minecraft.client.gui.screen.Screen;
+import gg.projecteden.titan.utils.Utils;
 import net.minecraft.component.ComponentMap;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.entity.player.PlayerEntity;
@@ -38,7 +38,7 @@ public abstract class ItemStackMixin {
         if (!ConfigItem.DO_BACKPACK_PREVIEWS.getValue())
             return;
 
-        if (!ConfigItem.PREVIEWS_REQUIRE_SHIFT.getValue() || Screen.hasShiftDown())
+        if (!ConfigItem.PREVIEWS_REQUIRE_SHIFT.getValue() || Utils.isShiftPressed())
             return;
 
         if (!this.getComponents().contains(DataComponentTypes.CUSTOM_DATA))

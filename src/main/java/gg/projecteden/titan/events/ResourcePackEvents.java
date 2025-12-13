@@ -1,5 +1,6 @@
 package gg.projecteden.titan.events;
 
+import gg.projecteden.titan.Titan;
 import gg.projecteden.titan.network.ServerClientMessaging;
 import gg.projecteden.titan.network.serverbound.Handshake;
 import gg.projecteden.titan.network.serverbound.TitanConfig;
@@ -9,19 +10,16 @@ import gg.projecteden.titan.saturn.SaturnUpdater;
 import gg.projecteden.titan.update.TitanUpdater;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
-import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
-import net.fabricmc.fabric.api.resource.SimpleSynchronousResourceReloadListener;
+import net.fabricmc.fabric.api.resource.v1.ResourceLoader;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.resource.ResourceManager;
+import net.minecraft.resource.ResourceReloader;
 import net.minecraft.resource.ResourceType;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
-import net.minecraft.util.Identifier;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 
-import static gg.projecteden.titan.Titan.MOD_ID;
 import static gg.projecteden.titan.config.ConfigItem.*;
 import static gg.projecteden.titan.utils.Utils.isOnEden;
 
@@ -58,16 +56,12 @@ public class ResourcePackEvents {
 				Saturn.enable();
 		});
 
-		ResourceManagerHelper.get(ResourceType.CLIENT_RESOURCES).registerReloadListener(new SimpleSynchronousResourceReloadListener() {
-			@Override
-			public Identifier getFabricId() {
-				return Identifier.of(MOD_ID, "saturn");
-			}
+		ResourceLoader.get(ResourceType.CLIENT_RESOURCES).registerReloader(Titan.id("reload_listener"), new ResourceReloader() {
 
 			long lastForcedReload = 0L;
 
 			@Override
-			public CompletableFuture<Void> reload(Synchronizer synchronizer, ResourceManager manager, Executor prepareExecutor, Executor applyExecutor) {
+			public CompletableFuture<Void> reload(Store store, Executor prepareExecutor, Synchronizer reloadSynchronizer, Executor applyExecutor) {
 				if (isOnEden() && (Saturn.getUpdater() == SaturnUpdater.GIT || SATURN_UPDATE_INSTANCES.getValue() != SaturnUpdater.Mode.START_UP)) {
 					Saturn.queueProcess(() -> {
 						if (Saturn.update()) {
@@ -82,11 +76,7 @@ public class ResourcePackEvents {
 						ServerClientMessaging.send(new Versions());
 					});
 				}
-				return SimpleSynchronousResourceReloadListener.super.reload(synchronizer, manager, prepareExecutor, applyExecutor);
-			}
-
-			@Override
-			public void reload(ResourceManager manager) {
+				return CompletableFuture.completedFuture(null);
 			}
 		});
 	}
