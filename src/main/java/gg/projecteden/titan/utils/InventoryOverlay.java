@@ -166,5 +166,12 @@ public class InventoryOverlay {
         FIXED_54(54);
 
         final int maxSlots;
+
+        public static InventoryRenderType ofRows(int rows) {
+            for (InventoryRenderType type : values())
+                if (type.maxSlots / 9 == rows)
+                    return type;
+            return null;
+        }
     }
 }

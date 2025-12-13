@@ -2,6 +2,7 @@ package gg.projecteden.titan.mixin;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import gg.projecteden.titan.config.ConfigItem;
+import gg.projecteden.titan.network.clientbound.BackpackConfig;
 import gg.projecteden.titan.utils.InventoryOverlay;
 import gg.projecteden.titan.utils.Utils;
 import net.minecraft.client.Minecraft;
@@ -93,19 +94,18 @@ public class HandledScreenMixin {
 
     @Unique
     private InventoryOverlay.InventoryRenderType getType(ItemStack stack) {
+        if (BackpackConfig.ENTRIES == null)
+            return InventoryOverlay.InventoryRenderType.FIXED_27;
+
         CustomData component = stack.get(DataComponents.CUSTOM_DATA);
         if (component == null) return null;
 
         CompoundTag nbt = component.copyTag();
-        if (nbt == null)
-            return InventoryOverlay.InventoryRenderType.FIXED_27;
 
-        if (nbt.contains("BP_TIER_NETHERITE") || nbt.contains("BP_TIER_DIAMOND"))
-            return InventoryOverlay.InventoryRenderType.FIXED_54;
-        if (nbt.contains("BP_TIER_GOLD"))
-            return InventoryOverlay.InventoryRenderType.FIXED_45;
-        if (nbt.contains("BP_TIER_IRON"))
-            return InventoryOverlay.InventoryRenderType.FIXED_36;
+        for (BackpackConfig.Entry entry : BackpackConfig.ENTRIES)
+            if (nbt.contains(entry.getType()))
+                return entry.getRenderType();
+
         return InventoryOverlay.InventoryRenderType.FIXED_27;
     }
 

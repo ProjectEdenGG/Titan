@@ -2,6 +2,7 @@ package gg.projecteden.titan.network.models;
 
 import com.google.gson.JsonObject;
 import gg.projecteden.titan.network.ServerClientMessaging;
+import gg.projecteden.titan.network.clientbound.BackpackConfig;
 import gg.projecteden.titan.network.clientbound.ResetMinigame;
 import gg.projecteden.titan.network.clientbound.SaturnUpdate;
 import gg.projecteden.titan.network.clientbound.UpdateState;
@@ -21,6 +22,7 @@ public enum PluginMessage {
     VERSIONS(Versions.class),
     UPDATE_STATE(UpdateState.class),
     RESET_MINIGAME(ResetMinigame.class),
+    BACKPACK_CONFIG(BackpackConfig.class)
     ;
 
     final @NonNull Class<? extends Message> clazz;
