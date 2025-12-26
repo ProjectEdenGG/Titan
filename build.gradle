@@ -47,7 +47,7 @@ dependencies {
 
 	implementation include("com.github.JnCrMx:discord-game-sdk4j:v0.5.5")
 
-	implementation ("org.apache.httpcomponents.client5:httpclient5:5.5.1")
+	implementation include("org.apache.httpcomponents.client5:httpclient5:5.5.1")
 }
 
 processResources {
@@ -94,29 +94,6 @@ jar {
 remapJar {
 	// Set the final name of the jar! This needs to be exactly this for the auto-update function to work!
 	archiveFileName = "titan.jar"
-}
-
-// configure the maven publication
-publishing {
-	publications {
-		mavenJava(MavenPublication) {
-			// add all the jars that should be included when publishing to maven
-			artifact(remapJar) {
-				builtBy remapJar
-			}
-			artifact(sourcesJar) {
-				builtBy remapSourcesJar
-			}
-		}
-	}
-
-	// See https://docs.gradle.org/current/userguide/publishing_maven.html for information on how to set up publishing.
-	repositories {
-		// Add repositories to publish to here.
-		// Notice: This block does NOT have the same function as the block in the top level.
-		// The repositories here will be used for publishing your artifact, not for
-		// retrieving dependencies.
-	}
 }
 
 modrinth {
