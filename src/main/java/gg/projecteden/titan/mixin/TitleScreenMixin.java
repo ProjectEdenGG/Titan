@@ -4,7 +4,6 @@ import gg.projecteden.titan.Titan;
 import gg.projecteden.titan.update.TitanUpdater;
 import gg.projecteden.titan.update.UpdateStatus;
 import gg.projecteden.titan.utils.Utils;
-import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.SpriteIconButton;
@@ -60,10 +59,6 @@ public class TitleScreenMixin extends Screen {
 			TitleScreenMixin.serverInfo = serverInfo;
 		}
 
-		boolean modMenu = FabricLoader.getInstance().getModContainer("modmenu").isPresent();
-		if (modMenu)
-			y -= spacingY;
-
 		Button.OnPress action = button -> {
 			if (TitanUpdater.updateStatus == UpdateStatus.AVAILABLE && Utils.isShiftPressed()) {
 				Util.getPlatform().openUri(Titan.MODRINTH_URL);
@@ -77,9 +72,7 @@ public class TitleScreenMixin extends Screen {
 		textIconButtonWidget.setPosition(this.width / 2 + 104, y - spacingY);
 		textIconButtonWidget.setTooltip(TitanUpdater.updateStatus.getTitleScreenTooltip());
 
-		y -= spacingY;
-		if (!modMenu)
-			y -= 10;
+		y -= (spacingY + 10);
 
 		if (TitanUpdater.updateStatus != UpdateStatus.NONE || Titan.debug) {
 			int finalY = y;

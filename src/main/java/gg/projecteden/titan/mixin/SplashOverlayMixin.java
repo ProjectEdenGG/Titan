@@ -5,12 +5,12 @@ import gg.projecteden.titan.network.ServerClientMessaging;
 import gg.projecteden.titan.network.serverbound.Versions;
 import gg.projecteden.titan.saturn.Saturn;
 import gg.projecteden.titan.saturn.SaturnUpdater;
+import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.LoadingOverlay;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
-import net.minecraft.ChatFormatting;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
@@ -39,8 +39,8 @@ public class SplashOverlayMixin {
 			.append(Component.literal(" Saturn was updated during your last textures reload!").withStyle(ChatFormatting.DARK_AQUA));
 
 
-	@Inject(method = "drawProgressBar", at = @At("RETURN"))
-	private void start(GuiGraphics context, int minX, int minY, int maxX, int maxY, float opacity, CallbackInfo ci) {
+	@Inject(method = "extractProgressBar", at = @At("RETURN"))
+	private void start(GuiGraphicsExtractor context, int minX, int minY, int maxX, int maxY, float opacity, CallbackInfo ci) {
 		if (isOnEden() && (Saturn.getUpdater() == SaturnUpdater.GIT || SATURN_UPDATE_INSTANCES.getValue() != SaturnUpdater.Mode.START_UP)) {
 			Saturn.queueProcess(() -> {
 				if (Saturn.update()) {
@@ -49,7 +49,7 @@ public class SplashOverlayMixin {
 						return;
 					lastForcedReload = thisReload;
 					Minecraft.getInstance().reloadResourcePacks();
-					Minecraft.getInstance().gui.getChat().addMessage(text);
+					Minecraft.getInstance().gui.hud.getChat().addClientSystemMessage(text);
 				}
 
 				ServerClientMessaging.send(new Versions());

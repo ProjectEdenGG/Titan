@@ -10,7 +10,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.commands.CommandBuildContext;
 import net.minecraft.network.chat.Component;
 
-import static net.fabricmc.fabric.api.client.command.v2.ClientCommandManager.literal;
+import static net.fabricmc.fabric.api.client.command.v2.ClientCommands.literal;
 
 public class TitanCommand {
 
@@ -35,7 +35,7 @@ public class TitanCommand {
 				.then(literal("update").executes(context -> {
 						Saturn.checkForUpdatesAsync().thenAccept(update -> {
 							if (!update)
-								Minecraft.getInstance().gui.getChat().addMessage(TitanCommand.error);
+								Minecraft.getInstance().gui.hud.getChat().addClientSystemMessage(TitanCommand.error);
 							else {
 									Saturn.queueProcess(() -> {
 										if (Saturn.update())
@@ -48,7 +48,7 @@ public class TitanCommand {
 						return Command.SINGLE_SUCCESS;
 					}))
 					.executes(context -> {
-						Minecraft.getInstance().gui.getChat().addMessage(TitanCommand.version);
+						Minecraft.getInstance().gui.hud.getChat().addClientSystemMessage(TitanCommand.version);
 						return Command.SINGLE_SUCCESS;
 					}));
 	}

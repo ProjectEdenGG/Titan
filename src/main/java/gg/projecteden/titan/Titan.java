@@ -43,8 +43,8 @@ public class Titan implements ModInitializer {
 
 		LOGGER.info(PREFIX + "Debug: " + message);
 
-		if (Minecraft.getInstance() != null && Minecraft.getInstance().gui != null && Minecraft.getInstance().gui.getChat() != null)
-			Minecraft.getInstance().gui.getChat().addMessage(Component.literal(PREFIX + message));
+		if (Minecraft.getInstance() != null && Minecraft.getInstance().gui != null && Minecraft.getInstance().gui.hud.getChat() != null)
+			Minecraft.getInstance().gui.hud.getChat().addClientSystemMessage(Component.literal(PREFIX + message));
 	}
 
 	public static Identifier id(String name) {

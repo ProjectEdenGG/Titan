@@ -1,7 +1,7 @@
 package gg.projecteden.titan.mixin;
 
 import gg.projecteden.titan.creative.CustomCreativeTabs;
-import net.fabricmc.fabric.api.client.itemgroup.v1.FabricCreativeInventoryScreen;
+import net.fabricmc.fabric.api.client.creativetab.v1.FabricCreativeModeInventoryScreen;
 import net.minecraft.client.gui.screens.inventory.CreativeModeInventoryScreen;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.CreativeModeTabs;
@@ -18,7 +18,7 @@ public abstract class CreativeInventoryScreenMixin {
 
     @Inject(method = "init", at = @At("TAIL"))
     void init(CallbackInfo ci) {
-        if (this instanceof FabricCreativeInventoryScreen fabricCreativeInventoryScreen) {
+        if (this instanceof FabricCreativeModeInventoryScreen fabricCreativeInventoryScreen) {
             if (CustomCreativeTabs.GROUPS.values().stream().noneMatch(CreativeModeTab::shouldDisplay)) {
                 fabricCreativeInventoryScreen.switchToPreviousPage();
                 this.selectTab(CreativeModeTabs.getDefaultTab());

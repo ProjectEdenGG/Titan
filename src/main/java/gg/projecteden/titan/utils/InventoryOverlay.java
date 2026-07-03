@@ -1,6 +1,5 @@
 package gg.projecteden.titan.utils;
 
-import com.mojang.blaze3d.opengl.GlStateManager;
 import com.mojang.blaze3d.textures.GpuSampler;
 import com.mojang.blaze3d.textures.GpuTextureView;
 import com.mojang.datafixers.util.Pair;
@@ -10,11 +9,11 @@ import gg.projecteden.titan.mixin.DrawContextMixin;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.navigation.ScreenRectangle;
 import net.minecraft.client.gui.render.TextureSetup;
-import net.minecraft.client.gui.render.state.GuiElementRenderState;
 import net.minecraft.client.renderer.RenderPipelines;
+import net.minecraft.client.renderer.state.gui.GuiElementRenderState;
 import net.minecraft.client.renderer.texture.AbstractTexture;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.Container;
@@ -29,10 +28,7 @@ public class InventoryOverlay {
     public static final InventoryProperties INV_PROPS_TEMP = new InventoryProperties();
 
 
-    public static void renderInventoryBackground(GuiGraphics context, InventoryRenderType type, int x, int y, int color, Minecraft mc) {
-        GlStateManager._enableBlend();
-        GlStateManager._blendFuncSeparate(770, 771, 1, 0);
-
+    public static void renderInventoryBackground(GuiGraphicsExtractor context, InventoryRenderType type, int x, int y, int color, Minecraft mc) {
         int rows = switch (type) {
             case FIXED_27 -> 0;
             case FIXED_36 -> 1;
@@ -46,7 +42,7 @@ public class InventoryOverlay {
         renderInventoryBackground(context, x, y, h1, h2, color, mc);
     }
 
-    public static void renderInventoryBackground(GuiGraphics context, int x, int y, int h1, int h2, int color, Minecraft mc) {
+    public static void renderInventoryBackground(GuiGraphicsExtractor context, int x, int y, int h1, int h2, int color, Minecraft mc) {
         Pair<GpuTextureView, GpuSampler> pair = bindTexture(TEXTURE_54);
         if (pair == null) return;
 
@@ -57,7 +53,7 @@ public class InventoryOverlay {
         drawTexturedRectBatched(context, pair, x +   7, y +  7,   7,  17, 162,  h2, color); // middle
     }
 
-    public static void drawTexturedRectBatched(GuiGraphics drawContext, Pair<GpuTextureView, GpuSampler> texture, int x, int y, int u, int v, int width, int height, int argb)
+    public static void drawTexturedRectBatched(GuiGraphicsExtractor drawContext, Pair<GpuTextureView, GpuSampler> texture, int x, int y, int u, int v, int width, int height, int argb)
     {
         addSimpleElement(drawContext,
                 new TexturedRectGUIElement(
@@ -78,11 +74,11 @@ public class InventoryOverlay {
         return null;
     }
 
-    public static void addSimpleElement(GuiGraphics drawContext, GuiElementRenderState simpleElement) {
-        ((DrawContextMixin) drawContext).getRenderState().submitGuiElement(simpleElement);
+    public static void addSimpleElement(GuiGraphicsExtractor drawContext, GuiElementRenderState simpleElement) {
+        ((DrawContextMixin) drawContext).getRenderState().addGuiElement(simpleElement);
     }
 
-    public static ScreenRectangle peekLastScissor(GuiGraphics drawContext) {
+    public static ScreenRectangle peekLastScissor(GuiGraphicsExtractor drawContext) {
         return ((DrawContextMixin) drawContext).getScissorStack().peek();
     }
 
@@ -107,7 +103,7 @@ public class InventoryOverlay {
         return INV_PROPS_TEMP;
     }
 
-    public static void renderInventoryStacks(InventoryRenderType type, Container inv, int startX, int startY, int slotsPerRow, int startSlot, int maxSlots, Minecraft mc, GuiGraphics drawContext) {
+    public static void renderInventoryStacks(InventoryRenderType type, Container inv, int startX, int startY, int slotsPerRow, int startSlot, int maxSlots, Minecraft mc, GuiGraphicsExtractor drawContext) {
         final int slots = inv.getContainerSize();
         int x = startX;
         int y = startY;
@@ -137,14 +133,14 @@ public class InventoryOverlay {
         }
     }
 
-    public static void renderStackAt(GuiGraphics drawContext, ItemStack stack, float x, float y, float scale, Minecraft mc) {
+    public static void renderStackAt(GuiGraphicsExtractor drawContext, ItemStack stack, float x, float y, float scale, Minecraft mc) {
         Matrix3x2fStack matrixStack = drawContext.pose();
         matrixStack.pushMatrix();
         matrixStack.translate(x, y);
         matrixStack.scale(scale, scale);
 
-        drawContext.renderItem(stack.copy(), 0, 0);
-        drawContext.renderItemDecorations(mc.font, stack.copy(), 0, 0);
+        drawContext.item(stack.copy(), 0, 0);
+        drawContext.itemDecorations(mc.font, stack.copy(), 0, 0);
 
         matrixStack.popMatrix();
     }

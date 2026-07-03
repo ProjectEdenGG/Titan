@@ -6,7 +6,7 @@ import gg.projecteden.titan.network.clientbound.BackpackConfig;
 import gg.projecteden.titan.utils.InventoryOverlay;
 import gg.projecteden.titan.utils.Utils;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.component.DataComponents;
@@ -35,9 +35,9 @@ import static gg.projecteden.titan.utils.Utils.getStoredItems;
 public class HandledScreenMixin {
     @Shadow @Nullable protected Slot hoveredSlot;
 
-    @Inject(method = "renderTooltip", at = @At(value = "INVOKE", shift = At.Shift.BEFORE,
-            target = "Lnet/minecraft/client/gui/GuiGraphics;setTooltipForNextFrame(Lnet/minecraft/client/gui/Font;Ljava/util/List;Ljava/util/Optional;IILnet/minecraft/resources/Identifier;)V"), cancellable = true)
-    private void onRenderTooltip(GuiGraphics drawContext, int x, int y, CallbackInfo ci) {
+    @Inject(method = "extractTooltip", at = @At(value = "INVOKE", shift = At.Shift.BEFORE,
+            target = "Lnet/minecraft/client/gui/GuiGraphicsExtractor;setTooltipForNextFrame(Lnet/minecraft/client/gui/Font;Ljava/util/List;Ljava/util/Optional;IILnet/minecraft/resources/Identifier;)V"), cancellable = true)
+    private void onRenderTooltip(GuiGraphicsExtractor drawContext, int x, int y, CallbackInfo ci) {
         if (!ConfigItem.DO_BACKPACK_PREVIEWS.getValue())
             return;
 
@@ -49,7 +49,7 @@ public class HandledScreenMixin {
     }
 
     @Unique
-    private void onRenderTooltipLast(GuiGraphics context, ItemStack stack, int x, int y, CallbackInfo ci) {
+    private void onRenderTooltipLast(GuiGraphicsExtractor context, ItemStack stack, int x, int y, CallbackInfo ci) {
         if (getStoredItems(Minecraft.getInstance().player.level().registryAccess(), stack).isEmpty()) {
             return;
         }
@@ -58,7 +58,7 @@ public class HandledScreenMixin {
     }
 
     @Unique
-    public void renderItemContentsPreview(ItemStack stack, int baseX, int baseY, GuiGraphics drawContext, CallbackInfo ci) {
+    public void renderItemContentsPreview(ItemStack stack, int baseX, int baseY, GuiGraphicsExtractor drawContext, CallbackInfo ci) {
         NonNullList<ItemStack> items = getStoredItems(Minecraft.getInstance().player.level().registryAccess(), stack);
 
         InventoryOverlay.InventoryRenderType type = getType(stack);

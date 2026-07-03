@@ -2,7 +2,7 @@ package gg.projecteden.titan.mixin;
 
 import gg.projecteden.titan.config.ConfigItem;
 import gg.projecteden.titan.discord.PlayerStates;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.ChatScreen;
 import net.minecraft.client.gui.screens.Screen;
@@ -28,8 +28,8 @@ public class ChatScreenMixin extends Screen {
         super(title);
     }
 
-    @Inject(method = "render", at = @At(value = "HEAD"))
-    public void render(GuiGraphics context, int mouseX, int mouseY, float delta, CallbackInfo ci) {
+    @Inject(method = "extractRenderState", at = @At(value = "HEAD"))
+    public void render(GuiGraphicsExtractor context, int mouseX, int mouseY, float delta, CallbackInfo ci) {
         if (!isOnEden())
             return;
         if (!ConfigItem.CHAT_CHANNEL_RENDER.getValue())

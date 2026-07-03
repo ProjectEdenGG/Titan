@@ -132,8 +132,9 @@ public class CustomCreativeItem {
                         style = style.withColor(rgb);
                     }
                     else {
-                        ChatFormatting formatting = ChatFormatting.getByName(color);
-                        if (formatting != null) style = style.withColor(formatting);
+                        try {
+                            style = style.withColor(ChatFormatting.valueOf(color.toUpperCase()));
+                        } catch (IllegalArgumentException ignore) { } // oh well
                     }
                 }
 

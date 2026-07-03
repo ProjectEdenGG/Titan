@@ -2,16 +2,12 @@ package gg.projecteden.titan.creative;
 
 import gg.projecteden.titan.Titan;
 import gg.projecteden.titan.utils.NexusAPI;
-import gg.projecteden.titan.utils.Utils;
-import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
+import net.fabricmc.fabric.api.creativetab.v1.FabricCreativeModeTab;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
-import net.minecraft.world.flag.FeatureFlagSet;
-import net.minecraft.world.flag.FeatureFlags;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.CreativeModeTab;
-import net.minecraft.world.item.CreativeModeTab.ItemDisplayParameters;
-import net.minecraft.world.item.CreativeModeTab.Row;
 import net.minecraft.world.item.CreativeModeTab.TabVisibility;
 
 import java.util.Arrays;
@@ -22,71 +18,34 @@ public class CustomCreativeTabs {
 
     public static final Map<String, String> CATEGORY_PREFIXES = new HashMap<>();
     public static final Map<String, CreativeModeTab> GROUPS = new HashMap<>();
-    public static final Map<String, CustomCreativeItem[]> ITEMS = new HashMap<>();
 
-    public static void init(String title, CustomCreativeItem icon, int index) {
+    public static void init(String title, CustomCreativeItem icon, CustomCreativeItem[] items) {
         String id = toId(title);
-        CreativeModeTab group = register(id, new CreativeModeTab.Builder(index % 10 < 5 ? Row.TOP : Row.BOTTOM, index % 5)
+        ResourceKey<CreativeModeTab> CUSTOM_CREATIVE_TAB_KEY = ResourceKey.create(BuiltInRegistries.CREATIVE_MODE_TAB.key(), Titan.id(id));
+        CreativeModeTab CUSTOM_CREATIVE_TAB = FabricCreativeModeTab.builder()
                 .title(Component.literal(title))
                 .icon(icon::getItemStack)
-                .displayItems(((displayContext, entries) -> {
-                    if (!ITEMS.containsKey(id) || ITEMS.get(id) == null)
-                        return;
-                    for (CustomCreativeItem item : ITEMS.get(id))
+                .displayItems((params, output) -> {
+                    for (CustomCreativeItem item : items)
                         if (icon.getItemStack() != null)
-                            entries.accept(item.getItemStack(), TabVisibility.PARENT_AND_SEARCH_TABS);
-                }))
-                .build());
+                            output.accept(item.getItemStack(), TabVisibility.PARENT_AND_SEARCH_TABS);
+                })
+                .build();
 
-        GROUPS.put(id, group);
-    }
-
-    public static <T extends CreativeModeTab> T register(String name, T itemGroup) {
-        return Registry.register(BuiltInRegistries.CREATIVE_MODE_TAB, Titan.id(name), itemGroup);
-    }
-
-    public static void update() {
-        ITEMS.clear();
-        CustomCreativeItem[] items = NexusAPI.getItems();
-
-        for (String id : GROUPS.keySet()) {
-            ITEMS.put(id, Arrays.stream(items).filter(item -> toId(item.category).equals(id)).toArray(CustomCreativeItem[]::new));
-
-            CreativeModeTab group = GROUPS.get(id);
-            group.buildContents(new ItemDisplayParameters(FeatureFlagSet.of(FeatureFlags.VANILLA), true, null));
-        }
-    }
-
-    public static void updateAsync() {
-        new Thread(CustomCreativeTabs::update).start();
-    }
-
-    public static void clear() {
-        ITEMS.clear();
-
-        for (String id : GROUPS.keySet()) {
-            CreativeModeTab group = GROUPS.get(id);
-            group.buildContents(new ItemDisplayParameters(FeatureFlagSet.of(FeatureFlags.VANILLA), true, null));
-        }
+        Registry.register(BuiltInRegistries.CREATIVE_MODE_TAB, CUSTOM_CREATIVE_TAB_KEY, CUSTOM_CREATIVE_TAB);
+        GROUPS.put(id, CUSTOM_CREATIVE_TAB);
     }
 
     public static void init() {
+        CustomCreativeItem[] items = NexusAPI.getItems();
+
         CustomCreativeItem[] categories = NexusAPI.getCategories();
         for (int i = 0; i < categories.length; i++) {
             CATEGORY_PREFIXES.put(categories[i].category, String.valueOf((char) ('a' + (i % 26))));
-            CustomCreativeTabs.init(categories[i].category, categories[i], i);
+            String id = toId(categories[i].category);
+            CustomCreativeItem[] categoryItems = Arrays.stream(items).filter(item -> toId(item.category).equals(id)).toArray(CustomCreativeItem[]::new);
+            CustomCreativeTabs.init(categories[i].category, categories[i], categoryItems);
         }
-
-        update();
-
-        ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> {
-            updateAsync();
-        });
-
-        ClientPlayConnectionEvents.JOIN.register(((handler, sender, client) -> {
-            if (!Utils.isOnEden())
-                clear();
-        }));
     }
 
     public static String toId(String title) {

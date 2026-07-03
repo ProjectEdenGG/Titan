@@ -26,7 +26,7 @@ public class SaturnUpdate extends Clientbound {
     public void onReceive() {
         Saturn.checkForUpdatesAsync().thenAccept(update -> {
             if (update)
-                Minecraft.getInstance().gui.getChat().addMessage(text);
+                Minecraft.getInstance().gui.hud.getChat().addClientSystemMessage(text);
         });
     }
 

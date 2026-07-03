@@ -121,8 +121,8 @@ public class ServerClientMessaging {
 	}
 
 	public static void init() {
-		PayloadTypeRegistry.playC2S().register(TitanPacket.PACKET_ID, TitanPacket.PACKET_CODEC);
-		PayloadTypeRegistry.playS2C().register(TitanPacket.PACKET_ID, TitanPacket.PACKET_CODEC);
+		PayloadTypeRegistry.serverboundPlay().register(TitanPacket.PACKET_ID, TitanPacket.PACKET_CODEC);
+		PayloadTypeRegistry.clientboundPlay().register(TitanPacket.PACKET_ID, TitanPacket.PACKET_CODEC);
 
 		ClientPlayNetworking.registerGlobalReceiver(TitanPacket.PACKET_ID, (payload, context) -> {
 			context.client().execute(payload::receive);
