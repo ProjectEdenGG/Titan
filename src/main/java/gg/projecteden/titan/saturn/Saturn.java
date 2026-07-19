@@ -28,6 +28,7 @@ public class Saturn {
 			if (!isInstalled()) {
 				Titan.log("Installing Saturn");
 				Titan.log(updater.install());
+				ServerClientMessaging.send(new Versions());
 			} else if (updater.checkForUpdates()) {
 				Titan.log("Updating Saturn");
 				Titan.log(updater.update());
@@ -35,7 +36,6 @@ public class Saturn {
 				Titan.log("Not updating as Saturn is already up-to-date");
 				return false;
 			}
-			ServerClientMessaging.send(new Versions());
 		} catch (Exception ex) {
 			ex.printStackTrace();
 			return false;

@@ -50,9 +50,8 @@ public class SplashOverlayMixin {
 					lastForcedReload = thisReload;
 					Minecraft.getInstance().reloadResourcePacks();
 					Minecraft.getInstance().gui.hud.getChat().addClientSystemMessage(text);
+					ServerClientMessaging.send(new Versions());
 				}
-
-				ServerClientMessaging.send(new Versions());
 			});
 		}
 
