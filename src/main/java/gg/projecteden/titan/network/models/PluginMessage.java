@@ -7,6 +7,7 @@ import gg.projecteden.titan.network.clientbound.ResetMinigame;
 import gg.projecteden.titan.network.clientbound.SaturnUpdate;
 import gg.projecteden.titan.network.clientbound.UpdateState;
 import gg.projecteden.titan.network.serverbound.Handshake;
+import gg.projecteden.titan.network.serverbound.Scroll;
 import gg.projecteden.titan.network.serverbound.TitanConfig;
 import gg.projecteden.titan.network.serverbound.Versions;
 import lombok.AllArgsConstructor;
@@ -22,7 +23,8 @@ public enum PluginMessage {
     VERSIONS(Versions.class),
     UPDATE_STATE(UpdateState.class),
     RESET_MINIGAME(ResetMinigame.class),
-    BACKPACK_CONFIG(BackpackConfig.class)
+    BACKPACK_CONFIG(BackpackConfig.class),
+    SCROLL(Scroll.class),
     ;
 
     final @NonNull Class<? extends Message> clazz;
