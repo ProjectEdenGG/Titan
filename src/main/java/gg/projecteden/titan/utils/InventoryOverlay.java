@@ -29,17 +29,10 @@ public class InventoryOverlay {
 
 
     public static void renderInventoryBackground(GuiGraphicsExtractor context, InventoryRenderType type, int x, int y, int color, Minecraft mc) {
-        int rows = switch (type) {
-            case FIXED_27 -> 0;
-            case FIXED_36 -> 1;
-            case FIXED_45 -> 2;
-            case FIXED_54 -> 3;
-        };
+        int rows = (int) (Math.ceil(type.getMaxSlots() / 9d));
+        int contentHeight = rows * 18;
 
-        int h1 = 61 + (rows * 18);
-        int h2 = 54 + (rows * 18);
-
-        renderInventoryBackground(context, x, y, h1, h2, color, mc);
+        renderInventoryBackground(context, x, y, contentHeight + 7, contentHeight, color, mc);
     }
 
     public static void renderInventoryBackground(GuiGraphicsExtractor context, int x, int y, int h1, int h2, int color, Minecraft mc) {
@@ -91,7 +84,7 @@ public class InventoryOverlay {
      * @return
      */
     public static InventoryProperties getInventoryPropsTemp(InventoryRenderType type) {
-        int totalSlots = Integer.parseInt(type.name().replace("FIXED_", ""));
+        int totalSlots = type.getMaxSlots();
 
         INV_PROPS_TEMP.slotsPerRow = 9;
         INV_PROPS_TEMP.slotOffsetX = 8;
@@ -156,6 +149,8 @@ public class InventoryOverlay {
     @Getter
     @AllArgsConstructor
     public enum InventoryRenderType {
+        FIXED_9(9),
+        FIXED_18(18),
         FIXED_27(27),
         FIXED_36(36),
         FIXED_45(45),

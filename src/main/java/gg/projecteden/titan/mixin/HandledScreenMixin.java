@@ -4,6 +4,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import gg.projecteden.titan.config.ConfigItem;
 import gg.projecteden.titan.network.clientbound.BackpackConfig;
 import gg.projecteden.titan.utils.InventoryOverlay;
+import gg.projecteden.titan.utils.InventoryOverlay.InventoryRenderType;
 import gg.projecteden.titan.utils.Utils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
@@ -106,7 +107,7 @@ public class HandledScreenMixin {
             if (nbt.contains(entry.getType()))
                 return entry.getRenderType();
 
-        return InventoryOverlay.InventoryRenderType.FIXED_27;
+        return InventoryRenderType.FIXED_9;
     }
 
     @Unique
